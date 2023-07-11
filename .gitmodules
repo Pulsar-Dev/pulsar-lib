@@ -1,0 +1,6 @@
+[submodule "lua/pulsar_lib/modules/pixelui"]
+	path = lua/pulsar_lib/modules/pixelui
+	url = https://github.com/Pulsar-Dev/pixel-ui
+[submodule "lua/pulsar_lib/modules/gm_express"]
+	path = lua/pulsar_lib/modules/gm_express
+	url = https://github.com/CFC-Servers/gm_express
