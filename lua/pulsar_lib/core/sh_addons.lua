@@ -6,7 +6,6 @@ PulsarLib.Addons = PulsarLib.Addons or setmetatable({
 PulsarLib.Addons.WaitingForDeps = PulsarLib.Addons.WaitingForDeps or {}
 
 local loaders = {}
-local loadLogger
 
 loaders.Include = function(self, path, state, full)
 	self = self.PulsarLibAddon
@@ -18,11 +17,9 @@ loaders.Include = function(self, path, state, full)
 	end
 
 	local prefix = state or path:match("/?(%w%w)[%w_]*.lua$") or "sh"
-	if not loadLogger and self.Logging then
-		loadLogger = self.Logging:Get("Loader")
-	end
-	if loadLogger then
-		loadLogger.Debug("Prefix: ", prefix, ". Path: '", path, "'")
+
+	if self.GlobalVar.Logging:Get("Loader") then
+		self.GlobalVar.Logging:Get("Loader").Debug("Prefix: ", prefix, ". Path: '", path, "'")
 	end
 
 	if prefix ~= "sv" then
@@ -41,8 +38,8 @@ loaders.IncludeDir = function(self, path, state)
 		path = path .. "/"
 	end
 
-	if loadLogger then
-		loadLogger.Debug("Including Directory: '", path, "'")
+	if self.GlobalVar.Logging:Get("Loader") then
+		self.GlobalVar.Logging:Get("Loader").Debug("Including Directory: '", path, "'")
 	end
 
 	local files = file.Find(path .. "*", "LUA")
@@ -59,8 +56,8 @@ loaders.IncludeDirRecursive = function(self, path, state, full)
 		path = path .. "/"
 	end
 
-	if loadLogger then
-		loadLogger.Debug("Recursive Include of: '", path, "'")
+	if self.GlobalVar.Logging:Get("Loader") then
+		self.GlobalVar.Logging:Get("Loader").Debug("Recursive Include of: '", path, "'")
 	end
 
 	local files, folders = file.Find(path .. "*", "LUA")
@@ -118,14 +115,12 @@ function AddonHandler:Load()
 		return
 	end
 
-	loadLogger = nil
-
 	self.GlobalVar.PulsarLibAddon = self
 
 	self.GlobalVar.Logging = table.Copy(PulsarLib.Logging)
 	self.GlobalVar.Logging.stored = {}
 	self.GlobalVar.Logging = setmetatable(self.GlobalVar.Logging, {__index = self.GlobalVar})
-	loadLogger = self.GlobalVar.Logging:Get("Loader")
+	self.GlobalVar.Logging:Get("Loader")
 
 	if self.Phrases then
 		self.GlobalVar.Logging.stored = {}
