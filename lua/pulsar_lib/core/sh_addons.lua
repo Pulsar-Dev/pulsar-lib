@@ -3,6 +3,8 @@ PulsarLib.Addons = PulsarLib.Addons or setmetatable({
 	stored = {}
 }, {__index = PulsarLib})
 
+PulsarLib.Addons.WaitingForDeps = PulsarLib.Addons.WaitingForDeps or {}
+
 local loaders = {}
 local loadLogger
 
@@ -106,7 +108,7 @@ function AddonHandler:SetOnLoad(func)
 end
 
 function AddonHandler:SetDependencies(deps)
-	self.dependencies = deps
+	self.Dependencies = deps
 	return self
 end
 
@@ -141,15 +143,30 @@ function AddonHandler:Load()
 	self.GlobalVar.IncludeDir = loaders.IncludeDir
 	self.GlobalVar.IncludeDirRecursive = loaders.IncludeDirRecursive
 
-	if self.Folder then
+	local loadable = false
+	if not istable(self.Dependencies) or (table.Count(self.Dependencies) == 0) then
+		loadable = true
+	else
+		loadable = true
+
+		for k, v in pairs(self.Dependencies) do
+			if not PulsarLib.ModuleTable[k].Loaded then
+				PulsarLib.Logging.Debug("Addon " .. self.name .. " waiting for " .. k .. " to load")
+				loadable = false
+				PulsarLib.Addons.WaitingForDeps[self.name] = self
+				break
+			end
+		end
+	end
+
+	PulsarLib.Logging.Info("Addon " .. self.name .. " was created and is ready to load.")
+
+	if self.Folder and loadable then
 		self.GlobalVar:Include(self.Folder .. "/sh_init.lua", "sh", true)
+		if self.OnLoad then
+			self:OnLoad()
+		end
 	end
-
-	if self.OnLoad then
-		self:OnLoad()
-	end
-
-	PulsarLib.Logging.Info("Addon " .. self.name .. " loaded")
 end
 
 addons.Create = AddonHandler.Create

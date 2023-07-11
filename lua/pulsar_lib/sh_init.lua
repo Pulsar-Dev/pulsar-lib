@@ -1,7 +1,24 @@
 -- Welcome to Pulsar.
 
+PulsarLib.ModuleTable = {
+    ["PulsarLib"] = {
+        Hook = "PulsarLib.Loaded",
+        Global = PulsarLib, -- This dont have to be a string, as we know the addon is loaded.
+        Loaded = true
+    },
+    ["pixelui"] = {
+        Hook = "PIXEL.UI.FullyLoaded",
+        Global = "PIXEL.UI" -- This must be a string, as chances are the addon hasn't loaded yet.
+    },
+    ["gm_express"] = {
+        Hook = false,
+        Global = false
+    }
+}
+
 PulsarLib:Include("core/sh_functional")
 PulsarLib:Include("core/sh_logging")
+PulsarLib:Include("core/sh_dependencies")
 PulsarLib:Include("core/sh_modules")
 
 PulsarLib:IncludeDir("lang")
@@ -15,21 +32,6 @@ PulsarLib:IncludeDir("helpers")
 
 PulsarLib.Logging.Info("Successfully Loaded!")
 hook.Run("PulsarLib.Loaded")
-
-PulsarLib.ModuleTable = {
-    ["PulsarLib"] = {
-        Hook = "PulsarLib.Loaded",
-        Global = PulsarLib
-    },
-    ["pixelui"] = {
-        Hook = "PIXEL.UI.FullyLoaded",
-        Global = PIXEL.UI
-    },
-    ["gm_express"] = {
-        Hook = false,
-        Global = false
-    }
-}
 
 local function loadAddons()
     PulsarLib:Include("core/sh_addons")
