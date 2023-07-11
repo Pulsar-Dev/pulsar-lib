@@ -94,6 +94,7 @@ function AddonHandler:SetGlobalVar(var)
 	return self
 end
 
+
 function AddonHandler:SetPhrases(phrases)
 	self.Phrases = phrases
 	return self
@@ -101,6 +102,11 @@ end
 
 function AddonHandler:SetOnLoad(func)
 	self.OnLoad = func
+	return self
+end
+
+function AddonHandler:SetDependencies(deps)
+	self.dependencies = deps
 	return self
 end
 
@@ -124,6 +130,12 @@ function AddonHandler:Load()
 		self.GlobalVar.Logging.Phrases = self.Phrases
 		self.GlobalVar.Logging:Get("")
 	end
+
+	self.GlobalVar.Language = table.Copy(PulsarLib.Language)
+	self.GlobalVar.Language.filePath = self.Folder .. "/language/*.lua"
+	self.GlobalVar.Language.stored = {}
+	self.GlobalVar.Language.plurals = {}
+	self.GlobalVar.Language:Load()
 
 	self.GlobalVar.Include = loaders.Include
 	self.GlobalVar.IncludeDir = loaders.IncludeDir

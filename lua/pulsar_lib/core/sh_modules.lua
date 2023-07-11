@@ -15,6 +15,7 @@ function modules:Scan()
 
 	for k, v in ipairs(files) do
 		local name = string.StripExtension(v)
+		PulsarLib.ModuleTable[name].Loaded = false
 
 		self.ModulesList[name] = {
 			name = name,
@@ -24,6 +25,7 @@ function modules:Scan()
 	end
 
 	for k, v in ipairs(folders) do
+		PulsarLib.ModuleTable[v].Loaded = false
 		self.ModulesList[v] = {
 			name = v,
 			path = "pulsar_lib/modules/" .. v,
@@ -124,9 +126,14 @@ function modules:Load(module)
 end
 
 function modules:LoadAll()
+	PulsarLib.ModulesLoaded = false
+
 	for k, v in pairs(self:FetchAll()) do
 		self:Load(k)
 	end
+
+	PulsarLib.ModulesLoaded = true
+	hook.Add("PulsarLib.ModulesLoaded")
 end
 
 PulsarLib.Modules:Scan()
