@@ -163,12 +163,15 @@ end
 logging.Phrases = {
 	Brand = {logging.Colours.Brand, "PulsarLib"},
 	BrandPride = {
-		Color(228, 3, 3), "Pu",
-		Color(255, 140, 0), "ls",
-		Color(255, 237, 0), "ar",
-		Color(0, 128, 38), "St",
-		Color(36, 64, 142), "or",
-		Color(115, 41, 130), "e",
+		Color(228, 3, 3), "P",
+		Color(255, 140, 0), "u",
+		Color(255, 237, 0), "l",
+		Color(0, 128, 38), "s",
+		Color(36, 64, 142), "a",
+		Color(115, 41, 130), "r",
+		Color(228, 3, 3), "L",
+		Color(255, 140, 0), "i",
+		Color(255, 237, 0), "b",
 	}
 }
 
@@ -216,7 +219,7 @@ function logging:Build(component, level)
 	local levelValue = isnumber(level) and level or self.Levels[level:upper()]
 
 	local args, fileArgs = {}, {"["}
-	table.insert(args, self.Functional.partial(self.Brand, self, true))
+	table.insert(args, PulsarLib.Functional.partial(self.Brand, self, true))
 	table.insert(args, self.Colours.Text)
 	table.insert(args, "[")
 
@@ -282,20 +285,20 @@ function logging:Build(component, level)
 		self.filePrint(...)
 	end
 
-	local write = self.Functional.partial(
+	local write = PulsarLib.Functional.partial(
 		prt,
 		unpack(args)
 	)
-	local forceWrite = self.Functional.partial(
+	local forceWrite = PulsarLib.Functional.partial(
 		prt,
 		true,
 		unpack(args)
 	)
-	local writeToFile = self.Functional.partial(
+	local writeToFile = PulsarLib.Functional.partial(
 		filePrt,
 		unpack(fileArgs)
 	)
-	local forceWriteToFile = self.Functional.partial(
+	local forceWriteToFile = PulsarLib.Functional.partial(
 		filePrt,
 		true,
 		unpack(fileArgs)

@@ -8,7 +8,7 @@ local excludeList = { -- A list of folders that shouldn't be replaced in `includ
 }
 
 local modules = PulsarLib.Modules
-modules.Modules = modules.Modules or {}
+modules.ModulesList = modules.ModulesList or {}
 
 function modules:Scan()
 	local files, folders = file.Find("pulsar_lib/modules/*", "LUA")
@@ -16,7 +16,7 @@ function modules:Scan()
 	for k, v in ipairs(files) do
 		local name = string.StripExtension(v)
 
-		self.Modules[name] = {
+		self.ModulesList[name] = {
 			name = name,
 			path = "pulsar_lib/modules/" .. v,
 			type = "file"
@@ -24,7 +24,7 @@ function modules:Scan()
 	end
 
 	for k, v in ipairs(folders) do
-		self.Modules[v] = {
+		self.ModulesList[v] = {
 			name = v,
 			path = "pulsar_lib/modules/" .. v,
 			type = "folder"
@@ -32,11 +32,12 @@ function modules:Scan()
 	end
 
 	PulsarLib.Logging.Info("Scanned modules. Found " .. #files .. " files and " .. #folders .. " folders.")
-	return self.Modules
+
+	return self.ModulesList
 end
 
 function modules:Fetch(module)
-	module = self.Modules[module]
+	module = self.ModulesList[module]
 
 	if not module then
 		PulsarLib.Logging.Error("Attempted to fetch module that doesn't exist.")
@@ -47,7 +48,7 @@ function modules:Fetch(module)
 end
 
 function modules:FetchAll()
-	return self.Modules
+	return self.ModulesList
 end
 
 local function updateLuaPaths(str, moduleLuaPath)

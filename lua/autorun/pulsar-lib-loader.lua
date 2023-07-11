@@ -64,10 +64,4 @@ function PulsarLib:IncludeDirRecursive(path, state, full)
 	end
 end
 
-function PulsarLib.LoadDirectoryRecursive(basePath)
-	return PulsarLib:IncludeDirRecursive(basePath)
-end
-
 PulsarLib:Include("sh_init")
-PulsarLib.Logging.Info("Successfully Loaded!")
-hook.Run("PulsarLib.Loaded")
