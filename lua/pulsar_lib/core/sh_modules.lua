@@ -61,7 +61,8 @@ end
 local function updateLuaPaths(str, moduleLuaPath)
 	local newStr = ""
 	for line in str:gmatch("[^\r\n]+") do
-		local match = line:match("%s*include%((.+)%)") or line:match("%s*AddCSLuaFile%((.+)%)")
+		local match = line:match("%s*include%((.+)%)") or line:match("%s*AddCSLuaFile%((.+)%)") or line:match("%s*file%.Find%((.+)%)")
+
 		if match then
 			local exclude = false
 			for k, _ in pairs(excludeList) do
