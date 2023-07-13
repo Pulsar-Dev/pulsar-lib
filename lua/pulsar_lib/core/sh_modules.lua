@@ -67,6 +67,31 @@ function modules:FetchAll()
 	return self.ModulesList
 end
 
+local function updateLuaPaths(str, moduleLuaPath)
+	local newStr = ""
+	for line in str:gmatch("[^\r\n]+") do
+		local match = line:match("%s*include%((.+)%)") or line:match("%s*AddCSLuaFile%((.+)%)") or line:match("%s*file%.Find%((.+)%)")
+
+		if match then
+			local exclude = false
+			for k, _ in pairs(excludeList) do
+				if line:find(k) then
+					exclude = true
+					break
+				end
+			end
+
+			if not exclude then
+				line = line:gsub(match, "\"" .. moduleLuaPath .. "\" .. " .. match)
+			end
+		end
+
+		newStr = newStr .. line .. "\n"
+	end
+
+	return newStr
+end
+
 function modules:Load(module)
 	module = istable(module) and module or self:Fetch(module)
 
