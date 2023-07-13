@@ -5,7 +5,7 @@ PulsarLib.Dependency = PulsarLib.Dependency or setmetatable({
 
 
 function PulsarLib.Dependency.Loaded(dependency)
-	PulsarLib.Logging.Debug("Dependency loaded: " .. dependency)
+	PulsarLib.Logging.Debug("Dependency loaded: ", PulsarLib.Logging.Colours.Highlight, dependency, PulsarLib.Logging.Colours.Text)
 	if not PulsarLib.Addons or not PulsarLib.Addons.WaitingForDeps then return end
 	for k, v in pairs(PulsarLib.Addons.WaitingForDeps) do
 		for k2, v2 in pairs(v.Dependencies) do

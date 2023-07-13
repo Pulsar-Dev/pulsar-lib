@@ -3,6 +3,15 @@ PulsarLib.Modules = PulsarLib.Modules or setmetatable({
 	stored = {}
 }, {__index = PulsarLib})
 
+local oldInclude = include
+local oldAddCS = AddCSLuaFile
+local oldFileFind = file.Find
+
+local logging = PulsarLib.Logging
+local loggingCol = PulsarLib.Logging.Colours
+local highlightCol = loggingCol.Highlights
+local textCol = loggingCol.Text
+
 local excludeList = { -- A list of folders that shouldn't be replaced in `include` and `AddCSLuaFile` functions
 	["includes"] = true
 }
@@ -38,7 +47,7 @@ function modules:Scan()
 		}
 	end
 
-	PulsarLib.Logging.Info("Scanned modules. Found " .. #files .. " files and " .. #folders .. " folders.")
+	logging.Info("Scanned modules. Found ", highlightCol, #files, textCol, " files and ", highlightCol, #folders, textCol, " folders.")
 
 	return self.ModulesList
 end
@@ -58,85 +67,134 @@ function modules:FetchAll()
 	return self.ModulesList
 end
 
-local function updateLuaPaths(str, moduleLuaPath)
-	local newStr = ""
-	for line in str:gmatch("[^\r\n]+") do
-		local match = line:match("^%s*include%((.+)%)") or line:match("^%s*AddCSLuaFile%((.+)%)")
-		if match then
-			local exclude = false
-			for k, _ in pairs(excludeList) do
-				if line:find(k) then
-					exclude = true
-					break
-				end
-			end
-
-			if not exclude then
-				line = line:gsub(match, "\"" .. moduleLuaPath .. "\" .. " .. match)
-			end
-		end
-
-		newStr = newStr .. line .. "\n"
-	end
-
-	return newStr
-end
-
 function modules:Load(module)
 	module = istable(module) and module or self:Fetch(module)
 
-	PulsarLib.Logging.Info("Loading module: " .. module.name)
+	oldInclude = oldInclude or include
+	oldAddCS = oldAddCS or AddCSLuaFile
+	oldFileFind = oldFileFind or file.Find
+
+	logging.Info("Loading module: ", highlightCol, module.name)
 
 	if module.type ~= "folder" then
 		PulsarLib:Include(module.path)
 	end
 
-	local files, folders = file.Find(module.path .. "/lua/autorun/*", "LUA")
-
+	local files, _ = file.Find(module.path .. "/lua/autorun/*", "LUA")
 
 	local moduleLuaPath = module.path .. "/lua/"
 
 	for k, v in pairs(files) do
 		local path = module.path .. "/lua/autorun/" .. v
-		local fileData = file.Read(path, "LUA")
-		local newAutorun = updateLuaPaths(fileData, moduleLuaPath)
-		RunString(newAutorun)
-		PulsarLib.Logging:Get("Loader").Debug("Loaded shared autorun: " .. path)
+
+		local function isExcluded(dir)
+			for excludePath, _ in pairs(excludeList) do
+				if string.find(dir, excludePath) then
+					return true
+				end
+			end
+			return false
+		end
+
+		local function moduleInclude(dir)
+			if not dir then return end
+			if isExcluded(dir) then
+				return oldInclude(dir)
+			end
+
+			local includePath = moduleLuaPath .. dir
+			local prefix = dir:match("/?(%w%w)[%w_]*.lua$") or "sh"
+			logging:Get("Loader").Debug("Prefix: ", highlightCol,  prefix, textCol, ". Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, dir, textCol, "'")
+
+			local currentDirPath = debug.getinfo(2).source:match("@(.*/)")
+
+			if currentDirPath then
+				local lookForPath = currentDirPath .. dir
+				lookForPath = lookForPath:Right(lookForPath:len() - 22)
+
+				if file.Exists(lookForPath, "LUA") then
+					return oldInclude(lookForPath)
+				else
+					return oldInclude(includePath)
+				end
+			else
+				return oldInclude(includePath)
+			end
+			return oldInclude(includePath)
+		end
+
+		local function moduleAddCS(dir)
+			if not dir then
+				local lookForPath = debug.getinfo(2).source
+				lookForPath = lookForPath:Right(lookForPath:len() - 23)
+
+				if file.Exists(lookForPath, "LUA") then
+					return oldAddCS(lookForPath)
+				end
+
+				return
+			end
+
+			if isExcluded(dir) then
+				return oldAddCS(dir)
+			end
+
+			local includePath = moduleLuaPath .. dir
+			local prefix = includePath:match("/?(%w%w)[%w_]*.lua$") or "sh"
+			logging:Get("Loader").Debug("Prefix: ", highlightCol,  prefix, textCol, ". Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, dir, textCol, "'")
+
+			local currentDirPath = debug.getinfo(2).source:match("@(.*/)")
+
+			if currentDirPath then
+				local lookForPath = currentDirPath .. dir
+				lookForPath = lookForPath:Right(lookForPath:len() - 22)
+
+				if file.Exists(lookForPath, "LUA") then
+					return oldAddCS(lookForPath)
+				else
+					return oldAddCS(includePath)
+				end
+			else
+				return oldAddCS(includePath)
+			end
+			return oldAddCS(includePath)
+		end
+
+		local function moduleFileFind(dir, findPath, sorting)
+			return oldFileFind(moduleLuaPath .. dir, findPath, sorting or "")
+		end
+
+		include = moduleInclude
+		AddCSLuaFile = moduleAddCS
+		file.Find = moduleFileFind
+
+		oldAddCS(path)
+		oldInclude(path)
+
+		include = oldInclude
+		AddCSLuaFile = oldAddCS
+		file.Find = oldFileFind
+
+		logging:Get("Loader").Debug("Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, path, textCol, "'")
+
 	end
 
-	for k, v in pairs(folders) do
-		if v == "server" then
-			if not SERVER then continue end
-			local serverFiles, _ = file.Find(module.path .. "/lua/autorun/server/*", "LUA")
-
-			for k2, v2 in pairs(serverFiles) do
-				local path = module.path .. "/lua/autorun/server/" .. v2
-				local fileData = file.Read(path, "LUA")
-				local newAutorun = updateLuaPaths(fileData, moduleLuaPath)
-				RunString(newAutorun)
-				PulsarLib.Logging:Get("Loader").Debug("Loaded server autorun: " .. path)
-			end
-		elseif v == "client" then
-			local clientFiles, _ = file.Find(module.path .. "/lua/autorun/client/*", "LUA")
-
-			for k2, v2 in pairs(clientFiles) do
-				local path = module.path .. "/lua/autorun/client/" .. v2
-				local fileData = file.Read(path, "LUA")
-				local newAutorun = updateLuaPaths(fileData, moduleLuaPath)
-				RunString(newAutorun)
-				PulsarLib.Logging:Get("Loader").Debug("Loaded client autorun: " .. path)
-			end
-		end
+	if PulsarLib.ModuleTable[module.name] and PulsarLib.ModuleTable[module.name].Global and _G[PulsarLib.ModuleTable[module.name].Global] then
+		logging.Debug("'", highlightCol, module.name, textCol, "' module successfully loaded")
+		PulsarLib.ModuleTable[module.name].Loaded = true
+		PulsarLib.Dependency.Loaded(module.name)
+		return
 	end
 
 	if PulsarLib.ModuleTable[module.name] and PulsarLib.ModuleTable[module.name].Hook then
 		hook.Add(PulsarLib.ModuleTable[module.name].Hook, "PulsarLib.DependancyLoader", function()
+			logging.Debug("'", highlightCol, module.name, textCol, "' module hook received. Module successfully loaded.")
 			PulsarLib.ModuleTable[module.name].Loaded = true
 			PulsarLib.Dependency.Loaded(module.name)
 		end)
-	else
+	elseif PulsarLib.ModuleTable[module.name] then
 		PulsarLib.ModuleTable[module.name].Loaded = true
-			PulsarLib.Dependency.Loaded(module.name)
+		PulsarLib.Dependency.Loaded(module.name)
 	end
 end
 
