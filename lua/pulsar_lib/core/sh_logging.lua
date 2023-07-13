@@ -34,6 +34,7 @@ logging.Colours = {
 	Brand = Color(2, 153, 204),
 	Client = Color(222, 169, 9),
 	Server = Color(3, 169, 224),
+	Highlights = Color(0,154,141),
 
 	Text = Color(200, 200, 200),
 	Disabled = Color(20, 20, 20),
@@ -223,18 +224,22 @@ function logging:Build(component, level)
 	table.insert(args, self.Colours.Text)
 	table.insert(args, "[")
 
-	if SERVER then
-		table.insert(args, self.Colours.Server)
-		table.insert(args, "SERVER")
-		table.insert(args, self.Colours.Text)
-		table.insert(args, "][")
-	end
-	if CLIENT then
-		table.insert(args, self.Colours.Client)
-		table.insert(args, "CLIENT")
-		table.insert(args, self.Colours.Text)
-		table.insert(args, "][")
-	end
+	local logTypes = {
+		["SERVER"] = {
+			Colour = self.Colours.Server,
+			Text = "SERVER"
+		},
+		["CLIENT"] = {
+			Colour = self.Colours.Client,
+			Text = "CLIENT"
+		},
+	}
+
+	local logType = SERVER and "SERVER" or "CLIENT"
+	table.insert(args, logTypes[logType].Colour)
+	table.insert(args, logTypes[logType].Text)
+	table.insert(args, self.Colours.Text)
+	table.insert(args, "][")
 
 	table.insert(fileArgs, os.date("%Y-%m-%d %H:%M:%S"))
 	table.insert(fileArgs, "][")
