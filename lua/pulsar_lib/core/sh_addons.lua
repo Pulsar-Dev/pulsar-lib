@@ -38,8 +38,8 @@ loaders.IncludeDir = function(self, path, state)
 		path = path .. "/"
 	end
 
-	if self.GlobalVar.Logging:Get("Loader") then
-		self.GlobalVar.Logging:Get("Loader").Debug("Including Directory: '", path, "'")
+	if self.Logging:Get("Loader") then
+		self.Logging:Get("Loader").Debug("Including Directory: '", path, "'")
 	end
 
 	local files = file.Find(path .. "*", "LUA")
@@ -56,8 +56,8 @@ loaders.IncludeDirRecursive = function(self, path, state, full)
 		path = path .. "/"
 	end
 
-	if self.GlobalVar.Logging:Get("Loader") then
-		self.GlobalVar.Logging:Get("Loader").Debug("Recursive Include of: '", path, "'")
+	if self.Logging:Get("Loader") then
+		self.Logging:Get("Loader").Debug("Recursive Include of: '", path, "'")
 	end
 
 	local files, folders = file.Find(path .. "*", "LUA")
