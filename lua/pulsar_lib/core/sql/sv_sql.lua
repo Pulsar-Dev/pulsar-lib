@@ -156,7 +156,7 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 			onError(err)
 		end
 
-		for k, v in pairs(values or {}) do
+		for k, v in ipairs(values or {}) do
 			if type(v) == "string" then
 				queryObj:setString(k, v)
 			elseif type(v) == "number" then
