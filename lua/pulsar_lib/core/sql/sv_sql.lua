@@ -75,8 +75,11 @@ function SQL:prepareStatement(query, values)
 			newQuery = newQuery .. self:Escape(value)
 		elseif type(value) == "boolean" then
 			newQuery = newQuery .. (value and "1" or "0")
-		else
+		elseif tonumber(value) then
 			newQuery = newQuery .. value
+		else
+			ErrorNoHaltWithStack("Invalid value type for prepared statement, expected nil, string, boolean or number, got " .. type(value))
+			return
 		end
 
 		last = stop
