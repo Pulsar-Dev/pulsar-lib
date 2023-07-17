@@ -15,6 +15,16 @@ function SQL:FetchDetails()
 	if file.Exists("pulsarlib/mysql.json", "DATA") then
 		local data = file.Read("pulsarlib/mysql.json", "DATA")
 		details = util.JSONToTable(data)
+	else
+		file.Write("pulsarlib/mysql.json", util.TableToJSON({
+			["UsingMySQL"] = false,
+			["Hostname"] = "",
+			["Port"] = 3306,
+			["Username"] = "",
+			["Password"] = "",
+			["Database"] = ""
+		}, true))
+		logger.Info("Created mysql.json, please fill it out and restart the server")
 	end
 
 	if details.UsingMySQL then
@@ -28,7 +38,8 @@ end
 function SQL:ConnectMySQL()
 	if self.Connection then return end
 
-	self.Connection = mysqloo.connect(self.Details.Hostname, self.Details.Username, self.Details.Password, self.Details.Database, self.Details.Port)
+	local details = self.Details
+	self.Connection = mysqloo.connect(details.Hostname, details.Username, details.Password, details.Database, details.Port)
 
 	self.Connection.onConnected = function()
 		logger.Info("Successfully connected to mysql database")
@@ -57,9 +68,14 @@ function SQL:Connect()
 	end
 end
 
+hook.Add("Think", "PulsarLib.ConnectToSQL", function()
+	hook.Remove("Think", "PulsarLib.ConnectToSQL")
+	SQL:Connect()
+end)
+
 -- Manually replace ? with values in a query
 function SQL:prepareStatement(query, values)
-	local values = values or {}
+	values = values or {}
 	local newQuery = ""
 	local i = 1
 	local last = 0
@@ -91,8 +107,6 @@ function SQL:prepareStatement(query, values)
 
 	return newQuery
 end
-
-SQL:Connect()
 
 local sqliteReplaces = {
 	["AUTO_INCREMENT"] = "AUTOINCREMENT",
@@ -146,10 +160,13 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
 
+	self:FetchDetails()
+
 	if self.Details.UsingMySQL then
 		local queryObj = self.Connection:prepare(query)
 
 		queryObj.onSuccess = function(_, data)
+			logger.Debug("Prepared MySQL query succeeded!")
 			onSuccess(data)
 		end
 
@@ -171,7 +188,6 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 				queryObj:setNull(k)
 			end
 		end
-
 		queryObj:start()
 	else
 		for k, v in pairs(sqliteReplaces) do
