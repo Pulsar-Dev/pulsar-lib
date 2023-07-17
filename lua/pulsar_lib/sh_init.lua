@@ -31,7 +31,7 @@ PulsarLib.DEBUG = PulsarLib.Logging.Levels.DEBUG
 
 PulsarLib:IncludeDir("helpers")
 
-PulsarLib.Logging.Info("Successfully Loaded!")
+PulsarLib.Logging:Info("Successfully Loaded!")
 hook.Run("PulsarLib.Loaded")
 
 local function loadAddons()
