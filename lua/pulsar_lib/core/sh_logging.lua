@@ -270,7 +270,7 @@ end
 -- @param ...
 -- @treturn table
 function logging:Highlight(...)
-	local hl = {self.Colours.Highlight, ...}
+	local hl = {self.Colours.Highlights, ...}
 	table.insert(hl, self.Colours.Text)
 	return hl
 end
