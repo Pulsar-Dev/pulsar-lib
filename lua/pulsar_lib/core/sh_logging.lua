@@ -11,7 +11,8 @@ local logging = PulsarLib.Logging
 
 logging.Levels = {
 	NONE = 100,
-	FATAL = 80,
+	FATAL = 90,
+	CRITICAL = 80,
 	ERROR = 70,
 	WARNING = 60,
 	INFO = 50,
@@ -19,7 +20,8 @@ logging.Levels = {
 	TRACE1 = 30,
 	TRACE2 = 20,
 	TRACE3 = 10,
-	ANY = 0
+	ANY = 0,
+	INHERIT = -1
 }
 logging.Levels.DEFAULT = logging.Levels.WARNING
 logging.Levels._MAX = logging.Levels.NONE
