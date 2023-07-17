@@ -195,7 +195,7 @@ end
 
 function SQL:Escape(str)
 	if self.Details.UsingMySQL then
-		return self.Connection:escape(str)
+		return "'" .. self.Connection:escape(str) .. "'"
 	else
 		return sql.SQLStr(str)
 	end
