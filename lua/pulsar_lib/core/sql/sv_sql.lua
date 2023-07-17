@@ -24,7 +24,7 @@ function SQL:FetchDetails()
 			["Password"] = "",
 			["Database"] = ""
 		}, true))
-		logger.Info("Created mysql.json, please fill it out and restart the server")
+		logger:Info("Created mysql.json in `garrysmod/data/pulsarlib/`. If you wish to use mysql, fill out these details.")
 	end
 
 	if details.UsingMySQL then
@@ -42,12 +42,12 @@ function SQL:ConnectMySQL()
 	self.Connection = mysqloo.connect(details.Hostname, details.Username, details.Password, details.Database, details.Port)
 
 	self.Connection.onConnected = function()
-		logger.Info("Successfully connected to mysql database")
+		logger:Info("Successfully connected to mysql database")
 		hook.Run("PulsarLib.SQL.Connected")
 	end
 
 	self.Connection.onConnectionFailed = function(_, err)
-		logger.Error("Failed to connect to mysql database: " .. err)
+		logger:Error("Failed to connect to mysql database: " .. err)
 		hook.Run("PulsarLib.SQL.ConnectionFailed")
 	end
 
@@ -166,7 +166,7 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 		local queryObj = self.Connection:prepare(query)
 
 		queryObj.onSuccess = function(_, data)
-			logger.Debug("Prepared MySQL query succeeded!")
+			logger:Debug("Prepared MySQL query succeeded!")
 			onSuccess(data)
 		end
 
@@ -196,7 +196,7 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 
 		local x = string.Split(query, "\n")
 		for _, line in ipairs(x) do
-			logger.Debug(line)
+			logger:Debug(line)
 		end
 
 		query = SQL:prepareStatement(query, values)
