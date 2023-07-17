@@ -9,6 +9,37 @@ PulsarLib.Logging = PulsarLib.Logging or setmetatable({
 }, {__index = PulsarLib})
 local logging = PulsarLib.Logging
 
+local function flatten(...)
+	local out = {}
+	local n = select('#', ...)
+	for i = 1, n do
+		local v = (select(i, ...))
+		if istable(v) and not IsColor(v) then
+			table.Add(out, flatten(unpack(v)))
+		elseif isfunction(v) then
+			table.Add(out, flatten(v()))
+		elseif type(v) == "Player" then
+			table.insert(out, team.GetColor(v:Team()))
+			table.insert(out, v:Name())
+			table.insert(out, " (")
+			table.insert(out, v:SteamID())
+			table.insert(out, ")")
+			table.insert(out, logging.Colours.Text)
+		else
+			table.insert(out, v)
+		end
+	end
+
+	return out
+end
+
+--- Print a message out to console
+-- @param ... Stringable instances to print.
+function logging.print(...)
+	MsgC(unpack(flatten(...)))
+	print()
+end
+
 logging.Levels = {
 	NONE = 100,
 	FATAL = 90,
