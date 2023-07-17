@@ -254,6 +254,12 @@ function logging:GetLogger(name)
 	return self.stored[key]
 end
 
+--- Get or create a cached logging instance.
+-- @function logging:Get(name)
+-- @string name Name of the logger to fetch.
+-- @treturn Logger
+logging.Get = logging.GetLogger
+
 --- Fetch the root logging instance.
 -- @treturn Logger
 function logging:Root()
