@@ -2,7 +2,7 @@ PulsarLib = PulsarLib or {}
 PulsarLib.SQL = PulsarLib.SQL or setmetatable({
 	stored = {}
 }, {__index = PulsarLib})
- 
+
 local SQL = PulsarLib.SQL
 
 file.CreateDir("pulsarlib")
@@ -44,7 +44,7 @@ end
 
 function SQL:ConnectSQLite()
 	hook.Run("PulsarLib.SQL.Connected")
-end 
+end
 
 function SQL:Connect()
 	self:FetchDetails()
