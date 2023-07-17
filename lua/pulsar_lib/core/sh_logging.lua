@@ -42,9 +42,9 @@ logging.Colours = {
 	Brand = Color(2, 153, 204),
 	Client = Color(222, 169, 9),
 	Server = Color(3, 169, 224),
-	Highlights = Color(0,154,141),
 
 	Text = Color(200, 200, 200),
+	Highlights = Color(206, 192, 0),
 	Disabled = Color(20, 20, 20),
 }
 
