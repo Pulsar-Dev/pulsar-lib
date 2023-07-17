@@ -4,6 +4,7 @@ PulsarLib.SQL = PulsarLib.SQL or setmetatable({
 }, {__index = PulsarLib})
 
 local SQL = PulsarLib.SQL
+local logger = PulsarLib.Logging:Get("Database")
 
 file.CreateDir("pulsarlib")
 
@@ -30,12 +31,12 @@ function SQL:ConnectMySQL()
 	self.Connection = mysqloo.connect(self.Details.Hostname, self.Details.Username, self.Details.Password, self.Details.Database, self.Details.Port)
 
 	self.Connection.onConnected = function()
-		PulsarLib.Logging.Info("Successfully connected to mysql database")
+		logger.Info("Successfully connected to mysql database")
 		hook.Run("PulsarLib.SQL.Connected")
 	end
 
 	self.Connection.onConnectionFailed = function(_, err)
-		PulsarLib.Logging.Error("Failed to connect to mysql database: " .. err)
+		logger.Error("Failed to connect to mysql database: " .. err)
 		hook.Run("PulsarLib.SQL.ConnectionFailed")
 	end
 
@@ -78,7 +79,7 @@ function SQL:prepareStatement(query, values)
 		elseif tonumber(value) then
 			newQuery = newQuery .. value
 		else
-			PulsarLib.Logging.Fatal("Invalid value type for prepared statement, expected nil, string, boolean or number, got " .. type(value) .. "\n" .. debug.traceback())
+			logger.Fatal("Invalid value type for prepared statement, expected nil, string, boolean or number, got " .. type(value) .. "\n" .. debug.traceback())
 			return
 		end
 
@@ -113,9 +114,9 @@ function SQL:RawQuery(query, onSuccess, onError)
 		end
 
 		queryObj.onError = function(_, err)
-			PulsarLib.Logging.Fatal("Raw MySQL query failed!")
-			PulsarLib.Logging.Fatal(err)
-			PulsarLib.Logging.Fatal(query)
+			logger.Fatal("Raw MySQL query failed!")
+			logger.Fatal(err)
+			logger.Fatal(query)
 			onError(err)
 		end
 
@@ -127,13 +128,13 @@ function SQL:RawQuery(query, onSuccess, onError)
 
 		local x = string.Split(query, "\n")
 		for _, line in ipairs(x) do
-			PulsarLib.Logging.Debug(line)
+			logger.Debug(line)
 		end
 		query = sql.Query(query)
 
 		if query == false then
-			PulsarLib.Logging.Fatal("SQL query failed!")
-			PulsarLib.Logging.Fatal(sql.LastError())
+			logger.Fatal("SQL query failed!")
+			logger.Fatal(sql.LastError())
 			onError(sql.LastError())
 		else
 			onSuccess(query)
@@ -153,9 +154,9 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 		end
 
 		queryObj.onError = function(_, err)
-			PulsarLib.Logging.Fatal("Prepared MySQL query failed!")
-			PulsarLib.Logging.Fatal(err)
-			PulsarLib.Logging.Fatal(SQL:prepareStatement(query, values))
+			logger.Fatal("Prepared MySQL query failed!")
+			logger.Fatal(err)
+			logger.Fatal(SQL:prepareStatement(query, values))
 			onError(err)
 		end
 
@@ -179,7 +180,7 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 
 		local x = string.Split(query, "\n")
 		for _, line in ipairs(x) do
-			PulsarLib.Logging.Debug(line)
+			logger.Debug(line)
 		end
 
 		query = SQL:prepareStatement(query, values)
@@ -187,8 +188,8 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 		query = sql.Query(query)
 
 		if query == false then
-			PulsarLib.Logging.Fatal("SQL query failed!")
-			PulsarLib.Logging.Fatal(sql.LastError())
+			logger.Fatal("SQL query failed!")
+			logger.Fatal(sql.LastError())
 			onError(sql.LastError())
 		else
 			onSuccess(query)
