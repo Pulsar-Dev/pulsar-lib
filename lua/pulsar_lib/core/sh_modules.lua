@@ -47,7 +47,7 @@ function modules:Scan()
 		}
 	end
 
-	logging.Info("Scanned modules. Found ", highlightCol, #files, textCol, " files and ", highlightCol, #folders, textCol, " folders.")
+	logging:Info("Scanned modules. Found ", highlightCol, #files, textCol, " files and ", highlightCol, #folders, textCol, " folders.")
 
 	return self.ModulesList
 end
@@ -75,7 +75,7 @@ function modules:Load(module)
 	oldAddCS = oldAddCS or AddCSLuaFile
 	oldFileFind = oldFileFind or file.Find
 
-	logging.Info("Loading module: ", highlightCol, module.name)
+	logging:Info("Loading module: ", highlightCol, module.name)
 
 	if module.type ~= "folder" then
 		PulsarLib:Include(module.path)
@@ -181,7 +181,7 @@ function modules:Load(module)
 	end
 
 	if PulsarLib.ModuleTable[module.name] and PulsarLib.ModuleTable[module.name].Global and _G[PulsarLib.ModuleTable[module.name].Global] then
-		logging.Debug("'", highlightCol, module.name, textCol, "' module successfully loaded")
+		logging:Debug("'", highlightCol, module.name, textCol, "' module successfully loaded")
 		PulsarLib.ModuleTable[module.name].Loaded = true
 		PulsarLib.Dependency.Loaded(module.name)
 		return
@@ -189,7 +189,7 @@ function modules:Load(module)
 
 	if PulsarLib.ModuleTable[module.name] and PulsarLib.ModuleTable[module.name].Hook then
 		hook.Add(PulsarLib.ModuleTable[module.name].Hook, "PulsarLib.DependancyLoader", function()
-			logging.Debug("'", highlightCol, module.name, textCol, "' module hook received. Module successfully loaded.")
+			logging:Debug("'", highlightCol, module.name, textCol, "' module hook received. Module successfully loaded.")
 			PulsarLib.ModuleTable[module.name].Loaded = true
 			PulsarLib.Dependency.Loaded(module.name)
 		end)
