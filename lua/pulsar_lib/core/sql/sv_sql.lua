@@ -99,7 +99,7 @@ local sqliteReplaces = {
 local emptyFunction = function() end
 
 function SQL:RawQuery(query, onSuccess, onError)
-	onSuiccess = onSuccess or emptyFunction
+	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
 
 	if self.Details.UsingMySQL then
@@ -139,7 +139,7 @@ function SQL:RawQuery(query, onSuccess, onError)
 end
 
 function SQL:PreparedQuery(query, values, onSuccess, onError)
-	onSuiccess = onSuccess or emptyFunction
+	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
 
 	if self.Details.UsingMySQL then
