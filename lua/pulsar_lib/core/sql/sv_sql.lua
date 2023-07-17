@@ -78,9 +78,12 @@ function SQL:prepareStatement(query, values)
 		elseif tonumber(value) then
 			newQuery = newQuery .. value
 		else
-			ErrorNoHaltWithStack("Invalid value type for prepared statement, expected nil, string, boolean or number, got " .. type(value))
+			PulsarLib.Logging.Fatal("Invalid value type for prepared statement, expected nil, string, boolean or number, got " .. type(value))
+			debug.traceback()
 			return
 		end
+
+		error()
 
 		last = stop
 		i = i + 1
