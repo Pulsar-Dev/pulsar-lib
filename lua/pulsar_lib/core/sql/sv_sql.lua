@@ -72,7 +72,7 @@ function SQL:prepareStatement(query, values)
 		if value == nil then
 			newQuery = newQuery .. "NULL"
 		elseif type(value) == "string" then
-			newQuery = newQuery .. sql.SQLStr(value)
+			newQuery = newQuery .. self:Escape(value)
 		elseif type(value) == "boolean" then
 			newQuery = newQuery .. (value and "1" or "0")
 		else
