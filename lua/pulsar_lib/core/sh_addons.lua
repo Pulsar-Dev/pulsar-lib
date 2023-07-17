@@ -19,7 +19,7 @@ loaders.Include = function(self, path, state, full)
 	local prefix = state or path:match("/?(%w%w)[%w_]*.lua$") or "sh"
 
 	if self.GlobalVar.Logging:Get("Loader") then
-		self.GlobalVar.Logging:Get("Loader").Debug("Prefix: ", prefix, ". Path: '", path, "'")
+		self.GlobalVar.Logging:Get("Loader"):Debug("Prefix: ", prefix, ". Path: '", path, "'")
 	end
 
 	if prefix ~= "sv" then
@@ -39,7 +39,7 @@ loaders.IncludeDir = function(self, path, state)
 	end
 
 	if self.Logging:Get("Loader") then
-		self.Logging:Get("Loader").Debug("Including Directory: '", path, "'")
+		self.Logging:Get("Loader"):Debug("Including Directory: '", path, "'")
 	end
 
 	local files = file.Find(path .. "*", "LUA")
@@ -57,7 +57,7 @@ loaders.IncludeDirRecursive = function(self, path, state, full)
 	end
 
 	if self.Logging:Get("Loader") then
-		self.Logging:Get("Loader").Debug("Recursive Include of: '", path, "'")
+		self.Logging:Get("Loader"):Debug("Recursive Include of: '", path, "'")
 	end
 
 	local files, folders = file.Find(path .. "*", "LUA")
@@ -111,7 +111,7 @@ end
 
 function AddonHandler:Load()
 	if not self.GlobalVar then
-		PulsarLib.Logging.Error("Addon " .. self.name .. " has no global var")
+		PulsarLib.Logging:Error("Addon " .. self.name .. " has no global var")
 		return
 	end
 
@@ -154,7 +154,7 @@ function AddonHandler:Load()
 		end
 	end
 
-	PulsarLib.Logging.Info("Addon " .. self.name .. " was created and is ready to load.")
+	PulsarLib.Logging:Info("Addon " .. self.name .. " was created and is ready to load.")
 
 	if self.Folder and loadable then
 		self.GlobalVar:Include(self.Folder .. "/sh_init.lua", "sh", true)

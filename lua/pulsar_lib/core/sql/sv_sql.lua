@@ -79,7 +79,7 @@ function SQL:prepareStatement(query, values)
 		elseif tonumber(value) then
 			newQuery = newQuery .. value
 		else
-			logger.Fatal("Invalid value type for prepared statement, expected nil, string, boolean or number, got " .. type(value) .. "\n" .. debug.traceback())
+			logger:Fatal("Invalid value type for prepared statement, expected nil, string, boolean or number, got " .. type(value) .. "\n" .. debug.traceback())
 			return
 		end
 
@@ -114,9 +114,9 @@ function SQL:RawQuery(query, onSuccess, onError)
 		end
 
 		queryObj.onError = function(_, err)
-			logger.Fatal("Raw MySQL query failed!")
-			logger.Fatal(err)
-			logger.Fatal(query)
+			logger:Fatal("Raw MySQL query failed!")
+			logger:Fatal(err)
+			logger:Fatal(query)
 			onError(err)
 		end
 
@@ -128,13 +128,13 @@ function SQL:RawQuery(query, onSuccess, onError)
 
 		local x = string.Split(query, "\n")
 		for _, line in ipairs(x) do
-			logger.Debug(line)
+			logger:Trace1(line)
 		end
 		query = sql.Query(query)
 
 		if query == false then
-			logger.Fatal("SQL query failed!")
-			logger.Fatal(sql.LastError())
+			logger:Fatal("SQL query failed!")
+			logger:Fatal(sql.LastError())
 			onError(sql.LastError())
 		else
 			onSuccess(query)
@@ -154,9 +154,9 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 		end
 
 		queryObj.onError = function(_, err)
-			logger.Fatal("Prepared MySQL query failed!")
-			logger.Fatal(err)
-			logger.Fatal(SQL:prepareStatement(query, values))
+			logger:Fatal("Prepared MySQL query failed!")
+			logger:Fatal(err)
+			logger:Fatal(SQL:prepareStatement(query, values))
 			onError(err)
 		end
 
@@ -188,8 +188,8 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 		query = sql.Query(query)
 
 		if query == false then
-			logger.Fatal("SQL query failed!")
-			logger.Fatal(sql.LastError())
+			logger:Fatal("SQL query failed!")
+			logger:Fatal(sql.LastError())
 			onError(sql.LastError())
 		else
 			onSuccess(query)

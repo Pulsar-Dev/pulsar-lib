@@ -110,7 +110,7 @@ function logging:Build(logger, component, level)
 	local levelValue = isnumber(level) and level or self.Levels[level:upper()]
 
 	local args = {}
-	table.insert(args, fp{self.Brand, self, true})
+	table.insert(args, self.Functional.partial(self.Brand, self, true))
 	table.insert(args, self.Colours.Text)
 	table.insert(args, "[")
 
@@ -155,7 +155,7 @@ function logging:Build(logger, component, level)
 		return calledLogger
 	end
 
-	return fp({prt, logger, unpack(args)})
+	return self.Functional.partial(prt, logger, unpack(args))
 end
 
 local logger = {}
