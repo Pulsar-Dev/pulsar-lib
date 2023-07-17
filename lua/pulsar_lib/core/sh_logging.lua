@@ -296,7 +296,10 @@ function logging:Brand(wrapped, event)
 	if not event then
 		event = ""
 
-		if os.date("%m") == "06" then
+		local dt = os.date("%d-%m")
+		if dt == "31-03" then
+			event = "Trans"
+		elseif os.date("%m") == "06" then
 			event = "Pride"
 		end
 	end
