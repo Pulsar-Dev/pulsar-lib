@@ -7,12 +7,12 @@
 -- @internal This should not be called directly. Use @{PulsarLib.Logging.GetLogger}, @{PulsarLib.Logging.Root}, @{GetChild} or @{GetParent} instead.
 -- @function logger:New(name)
 -- @string name Name of the lgger to create.
--- @chainable The created logger.
+-- @treturn Logger The created logger.
 
 --- Sets the logging level of this logger.
 -- @function logger:SetLevel(level)
 -- @tparam number|string New logging level to set.
--- @chainable
+-- @treturn Logger
 
 --- Gets the logging level of this logger.
 -- @function logger:GetLevel()
@@ -45,48 +45,48 @@
 --- Emit a log with a Fatal log level.
 -- @function logger:Fatal(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 --- Emit a log with a Critical log level.
 -- @function logger:Critical(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 --- Emit a log with a Error log level.
 -- @function logger:Error(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 --- Emit a log with a Warning log level.
 -- @function logger:Warning(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 --- Emit a log with a Info log level.
 -- @function logger:Info(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 --- Emit a log with a Debug log level.
 -- @function logger:Debug(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 
 --- Emit a log with a level 1 trace log level.
 -- @function logger:Trace1(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 --- Emit a log with a level 2 trace log level.
 -- @function logger:Trace2(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 --- Emit a log with a level 3 trace log level.
 -- @function logger:Trace3(...)
 -- @param ... Stringable arguments.
--- @chainable
+-- @treturn Logger
 
 --- Wrap the statements in highligt color.
 -- @function logger:Highlight(...)
