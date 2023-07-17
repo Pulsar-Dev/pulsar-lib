@@ -30,6 +30,7 @@ logging.Levels._MIN = logging.Levels.ANY
 logging.Colours = {
 	[logging.Levels.NONE] = Color(20, 20, 20),
 	[logging.Levels.FATAL] = Color(255, 0, 0),
+	[logging.Levels.CRITICAL] = Color(255, 30, 30),
 	[logging.Levels.ERROR] = Color(255, 60, 60),
 	[logging.Levels.WARNING] = Color(255, 200, 0),
 	[logging.Levels.INFO] = Color(20, 140, 255),
