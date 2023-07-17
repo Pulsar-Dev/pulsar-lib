@@ -1,3 +1,8 @@
+--- Logging Library.
+-- @author Joshua Piper
+-- @module PulsarLib.Logging
+-- @alias logging
+
 PulsarLib = PulsarLib or {}
 PulsarLib.Logging = PulsarLib.Logging or setmetatable({
 	stored = {}
