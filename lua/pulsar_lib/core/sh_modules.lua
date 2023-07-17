@@ -207,7 +207,7 @@ function modules:LoadAll()
 	end
 
 	PulsarLib.ModulesLoaded = true
-	hook.Add("PulsarLib.ModulesLoaded")
+	hook.Run("PulsarLib.ModulesLoaded")
 end
 
 PulsarLib.Modules:Scan()
