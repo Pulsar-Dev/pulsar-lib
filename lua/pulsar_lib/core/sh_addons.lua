@@ -146,7 +146,7 @@ function AddonHandler:Load()
 
 		for k, v in pairs(self.Dependencies) do
 			if not PulsarLib.ModuleTable[k].Loaded then
-				PulsarLib.Logging.Debug("Addon " .. self.name .. " waiting for " .. k .. " to load")
+				PulsarLib.Logging:Debug("Addon " .. self.name .. " waiting for " .. k .. " to load")
 				loadable = false
 				PulsarLib.Addons.WaitingForDeps[self.name] = self
 				break
