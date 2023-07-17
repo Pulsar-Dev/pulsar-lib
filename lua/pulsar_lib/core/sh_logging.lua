@@ -312,199 +312,69 @@ function logging:Brand(wrapped, event)
 	return {brand, self.Colours.Text}
 end
 
-function logging:Level(component)
-	if not component then
-		component = ""
-	end
-
-	local path = string.Explode(".", component)
-	for i = #path, 0, -1 do
-		local check = table.concat(path, ".", 1, i)
-		if self.CurrentLevels[check] then
-			return self.CurrentLevels[check]
-		end
-	end
-
-	return self.Levels.DEFAULT
+--- Emit a log with a Fatal log level.
+-- @function logger:Fatal(...)
+-- @param ... Stringable arguments.
+function logging:Fatal(...)
+	self:Root():Fatal(...)
 end
 
---- Build the message functions for a given level.
--- Adds the function to logging.<LEVEL>, ie logging.Warning
--- @tparam string level Message level.
-function logging:Build(component, level)
-	local levelValue = isnumber(level) and level or self.Levels[level:upper()]
-
-	local args, fileArgs = {}, {"["}
-	table.insert(args, PulsarLib.Functional.partial(self.Brand, self, true))
-	table.insert(args, self.Colours.Text)
-	table.insert(args, "[")
-
-	local logTypes = {
-		["SERVER"] = {
-			Colour = self.Colours.Server,
-			Text = "SERVER"
-		},
-		["CLIENT"] = {
-			Colour = self.Colours.Client,
-			Text = "CLIENT"
-		},
-	}
-
-	local logType = SERVER and "SERVER" or "CLIENT"
-	table.insert(args, logTypes[logType].Colour)
-	table.insert(args, logTypes[logType].Text)
-	table.insert(args, self.Colours.Text)
-	table.insert(args, "][")
-
-	table.insert(fileArgs, os.date("%Y-%m-%d %H:%M:%S"))
-	table.insert(fileArgs, "][")
-
-	if component ~= "" then
-		table.insert(args, component)
-		table.insert(fileArgs, component)
-		table.insert(args, "][")
-		table.insert(fileArgs, "][")
-	end
-
-	table.insert(fileArgs, level:upper())
-	table.insert(fileArgs, "] ")
-
-	if self.Colours[levelValue] then
-		table.insert(args, self.Colours[levelValue])
-		table.insert(args, level:upper())
-		table.insert(args, self.Colours.Text)
-		table.insert(args, "] ")
-	else
-		table.insert(args, level .. "] ")
-	end
-
-	local function prt(...)
-		if (select(1, ...)) == true then
-			self.print(select(2, ...))
-		end
-
-		if self:Level(component:lower()) > levelValue then
-			return
-		end
-
-		self.print(...)
-	end
-	local function filePrt(...)
-		if not self.LogToFile then
-			return
-		end
-
-		if (select(1, ...)) == true then
-			self.filePrint(select(2, ...))
-		end
-
-		if self:Level(component:lower()) > levelValue then
-			return
-		end
-
-		self.filePrint(...)
-	end
-
-	local write = PulsarLib.Functional.partial(
-		prt,
-		unpack(args)
-	)
-	local forceWrite = PulsarLib.Functional.partial(
-		prt,
-		true,
-		unpack(args)
-	)
-	local writeToFile = PulsarLib.Functional.partial(
-		filePrt,
-		unpack(fileArgs)
-	)
-	local forceWriteToFile = PulsarLib.Functional.partial(
-		filePrt,
-		true,
-		unpack(fileArgs)
-	)
-
-	return function(...)
-		write(...)
-		writeToFile(...)
-	end, function(...)
-		forceWrite(...)
-		forceWriteToFile(...)
-	end
+--- Emit a log with a Critical log level.
+-- @function logger:Critical(...)
+-- @param ... Stringable arguments.
+function logging:Critical(...)
+	self:Root():Critical(...)
 end
 
-function logging:Get(logger)
-	local key = logger:lower()
-
-	if not self.stored[key] then
-		self.stored[key] = {}
-		for _, level in ipairs({"Fatal", "Error", "Warning", "Info", "Debug"}) do
-			local msg, forceMsg = self:Build(logger, level)
-			self.stored[key][level] = msg
-			self.stored[key]["Force" .. level] = forceMsg
-		end
-	end
-
-	return self.stored[key]
+--- Emit a log with a Error log level.
+-- @function logger:Error(...)
+-- @param ... Stringable arguments.
+function logging:Error(...)
+	self:Root():Error(...)
 end
 
-function logging.Fatal(...)
-	logging:Get("").Fatal(...)
-end
-function logging.ForceFatal(...)
-	logging:Get("").ForceFatal(...)
-end
-
-function logging.Error(...)
-	logging:Get("").Error(...)
-end
-function logging.ForceError(...)
-	logging:Get("").ForceError(...)
+--- Emit a log with a Warning log level.
+-- @function logger:Warning(...)
+-- @param ... Stringable arguments.
+function logging:Warning(...)
+	self:Root():Warning(...)
 end
 
-function logging.Warning(...)
-	logging:Get("").Warning(...)
-end
-function logging.ForceWarning(...)
-	logging:Get("").ForceWarning(...)
-end
+--- Emit a log with a Info log level.
+-- @function logger:Info(...)
+-- @param ... Stringable arguments.
 
-function logging.Info(...)
-	logging:Get("").Info(...)
-end
-function logging.ForceInfo(...)
-	logging:Get("").ForceInfo(...)
+function logging:Info(...)
+	self:Root():Info(...)
 end
 
-function logging.Debug(...)
-	logging:Get("").Debug(...)
+--- Emit a log with a Debug log level.
+-- @function logger:Debug(...)
+-- @param ... Stringable arguments.
+function logging:Debug(...)
+	self:Root():Debug(...)
 end
-function logging.ForceDebug(...)
-	logging:Get("").ForceDebug(...)
+
+--- Emit a log with a level 1 trace log level.
+-- @function logger:Trace1(...)
+-- @param ... Stringable arguments.
+function logging:Trace1(...)
+	self:Root():Trace1(...)
 end
 
-concommand.Add("pulsarlib_log_report", function()
-	local l = logging
-	local c = l.Colours
-	local t = c.Text
+--- Emit a log with a level 2 trace log level.
+-- @function logger:Trace2(...)
+-- @param ... Stringable arguments.
+function logging:Trace2(...)
+	self:Root():Trace2(...)
+end
 
-	MsgC(unpack(flatten(l:Brand(), " Logging Configuration Report\n")))
-	MsgC(t, "Logging is configurable, to be as chatty or quiet as required.\n")
-	MsgC(t, "For this, we have various logging levels, representing how dire a log represents.\n")
-	MsgC(t, "The various pulsarlib_log ConVars are used to control which of these output.\n")
-	MsgC(t, "Any logs at the given level or above will be shown.\n")
-	MsgC(t, "Any logs below will be hidden.\n\n")
-	MsgC(t, "todo: make it show all the configured loggers")
+--- Emit a log with a level 3 trace log level.
+-- @function logger:Trace3(...)
+-- @param ... Stringable arguments.
+function logging:Trace3(...)
+	self:Root():Trace3(...)
+end
 
-	MsgC("\n", t, "Below here, we'll print one of each log, in decending order of severity.\n\n")
-	l.Fatal("Example Fatal Log")
-	l.Error("Example Error Log")
-	l.Warning("Example Warning Log")
-	l.Info("Example Informational Log")
-	l.Debug("Example Debug Log")
-end, nil, "Report on which logging levels will be reported by PulsarLib.")
-
-logging:CreateConVar(nil, "")
-logging:CreateConVar("loader", "loader")
-logging:CreateConVar("database", "database")
-logging:CreateConVar("deprecations", "deprecations")
+-- Preload the root logger.
+logging:GetLogger("")
