@@ -124,7 +124,7 @@ function SQL:RawQuery(query, onSuccess, onError)
 
 		local x = string.Split(query, "\n")
 		for _, line in ipairs(x) do
-			PulsarStore.Logging.Debug(line)
+			PulsarLib.Logging.Debug(line)
 		end
 		query = sql.Query(query)
 
@@ -176,7 +176,7 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 
 		local x = string.Split(query, "\n")
 		for _, line in ipairs(x) do
-			PulsarStore.Logging.Debug(line)
+			PulsarLib.Logging.Debug(line)
 		end
 
 		query = SQL:prepareStatement(query, values)
