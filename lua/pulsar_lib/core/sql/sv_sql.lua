@@ -171,6 +171,7 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 
 		queryObj.onSuccess = function(_, data)
 			logger:Debug("Prepared MySQL query succeeded!")
+			logger:Debug(SQL:prepareStatement(query, values))
 			onSuccess(data)
 		end
 

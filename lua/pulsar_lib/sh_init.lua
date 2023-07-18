@@ -23,12 +23,6 @@ PulsarLib:Include("core/sh_modules")
 PulsarLib:Include("core/sql/sv_sql")
 
 PulsarLib:IncludeDir("lang")
-
-PulsarLib.ERROR = PulsarLib.Logging.Levels.ERROR
-PulsarLib.INFO = PulsarLib.Logging.Levels.INFO
-PulsarLib.WARNING = PulsarLib.Logging.Levels.WARNING
-PulsarLib.DEBUG = PulsarLib.Logging.Levels.DEBUG
-
 PulsarLib:IncludeDir("helpers")
 
 PulsarLib.Logging:Info("Successfully Loaded!")
