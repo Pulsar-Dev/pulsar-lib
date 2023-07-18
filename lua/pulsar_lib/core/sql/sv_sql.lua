@@ -68,6 +68,10 @@ function SQL:Connect()
 	end
 end
 
+function SQL:IsMySQL()
+	return self.Details.UsingMySQL == true
+end
+
 hook.Add("Think", "PulsarLib.ConnectToSQL", function()
 	hook.Remove("Think", "PulsarLib.ConnectToSQL")
 	SQL:Connect()
