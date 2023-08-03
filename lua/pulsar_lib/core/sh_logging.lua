@@ -108,7 +108,7 @@ end
 -- @tparam Logger logger Logger to build the method for.
 -- @string component The component name to build for.
 -- @number level Required logging level.
-function logging:Build(logger, component, level)
+function logging:Build(component, level)
 	local levelValue = isnumber(level) and level or self.Levels[level:upper()]
 
 	local args = {}
@@ -143,21 +143,20 @@ function logging:Build(logger, component, level)
 		table.insert(args, level .. "] ")
 	end
 
-	local function prt(calledLogger, ...)
+	local prt = self.Functional.partial(logging.print, args)
+	return function(logger, ...)
 		if (select(1, ...)) == true then
-			logging.print(select(2, ...))
-			return calledLogger
+			prt(select(2, ...))
+			return logger
 		end
 
-		if calledLogger:GetEffectiveLevel() > levelValue then
-			return calledLogger
+		if logger:GetEffectiveLevel() > levelValue then
+			return logger
 		end
 
-		logging.print(...)
-		return calledLogger
+		prt(...)
+		return logger
 	end
-
-	return self.Functional.partial(prt, logger, unpack(args))
 end
 
 local logger = {}
@@ -169,15 +168,15 @@ function logger:New(name)
 		level = name == "" and logging.Levels.DEFAULT or nil
 	}, self)
 
-	log.Trace1 = logging:Build(log, name, "TRACE1")
-	log.Trace2 = logging:Build(log, name, "TRACE2")
-	log.Trace3 = logging:Build(log, name, "TRACE3")
-	log.Debug = logging:Build(log, name, "DEBUG")
-	log.Info = logging:Build(log, name, "INFO")
-	log.Warning = logging:Build(log, name, "WARNING")
-	log.Error = logging:Build(log, name, "ERROR")
-	log.Critical = logging:Build(log, name, "CRITICAL")
-	log.Fatal = logging:Build(log, name, "FATAL")
+	log.Trace1 = logging:Build(name, "TRACE1")
+	log.Trace2 = logging:Build(name, "TRACE2")
+	log.Trace3 = logging:Build(name, "TRACE3")
+	log.Debug = logging:Build(name, "DEBUG")
+	log.Info = logging:Build(name, "INFO")
+	log.Warning = logging:Build(name, "WARNING")
+	log.Error = logging:Build(name, "ERROR")
+	log.Critical = logging:Build(name, "CRITICAL")
+	log.Fatal = logging:Build(name, "FATAL")
 
 	return log
 end
