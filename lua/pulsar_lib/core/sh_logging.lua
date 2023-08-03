@@ -99,7 +99,9 @@ function logging:Parse(level)
 		return self.Levels[level]
 	end
 
-	return self.Levels.DEFAULT
+	-- If we cannot parse the log level, return back to inheriting.
+	-- Internally, the root logger will return the default level, so no worries there.
+	return nil
 end
 
 --- Build the logging method for a given level.
