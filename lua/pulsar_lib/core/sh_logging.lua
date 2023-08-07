@@ -276,6 +276,22 @@ function logging:Highlight(...)
 	return hl
 end
 
+function logging:AsLevel(level, ...)
+	local parsed = self:Parse(level:upper())
+	if parsed == nil then
+		return {...}
+	end
+
+	local color = self.Colours[parsed] or self.Colours.Text
+	if select('#', ...) == 0 then
+		return {color, level, self.Colours.Text}
+	end
+
+	local out = {color, ...}
+	table.insert(out, self.Colours.Text)
+	return out
+end
+
 logging.Phrases = {
 	Brand = {logging.Colours.Brand, "PulsarLib"},
 	BrandPride = {
