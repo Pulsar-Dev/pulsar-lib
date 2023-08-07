@@ -32,6 +32,7 @@ local function flatten(...)
 
 	return out
 end
+logging.flatten = flatten
 
 --- Print a message out to console
 -- @param ... Stringable instances to print.
