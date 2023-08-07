@@ -32,6 +32,7 @@ local function flatten(...)
 
 	return out
 end
+logging.flatten = flatten
 
 --- Print a message out to console
 -- @param ... Stringable instances to print.
@@ -99,14 +100,16 @@ function logging:Parse(level)
 		return self.Levels[level]
 	end
 
-	return self.Levels.DEFAULT
+	-- If we cannot parse the log level, return back to inheriting.
+	-- Internally, the root logger will return the default level, so no worries there.
+	return nil
 end
 
 --- Build the logging method for a given level.
 -- @tparam Logger logger Logger to build the method for.
 -- @string component The component name to build for.
 -- @number level Required logging level.
-function logging:Build(logger, component, level)
+function logging:Build(component, level)
 	local levelValue = isnumber(level) and level or self.Levels[level:upper()]
 
 	local args = {}
@@ -141,21 +144,20 @@ function logging:Build(logger, component, level)
 		table.insert(args, level .. "] ")
 	end
 
-	local function prt(calledLogger, ...)
+	local prt = self.Functional.partial(logging.print, args)
+	return function(logger, ...)
 		if (select(1, ...)) == true then
-			logging.print(select(2, ...))
-			return calledLogger
+			prt(select(2, ...))
+			return logger
 		end
 
-		if calledLogger:GetEffectiveLevel() > levelValue then
-			return calledLogger
+		if logger:GetEffectiveLevel() > levelValue then
+			return logger
 		end
 
-		logging.print(...)
-		return calledLogger
+		prt(...)
+		return logger
 	end
-
-	return self.Functional.partial(prt, logger, unpack(args))
 end
 
 local logger = {}
@@ -167,15 +169,15 @@ function logger:New(name)
 		level = name == "" and logging.Levels.DEFAULT or nil
 	}, self)
 
-	log.Trace1 = logging:Build(log, name, "TRACE1")
-	log.Trace2 = logging:Build(log, name, "TRACE2")
-	log.Trace3 = logging:Build(log, name, "TRACE3")
-	log.Debug = logging:Build(log, name, "DEBUG")
-	log.Info = logging:Build(log, name, "INFO")
-	log.Warning = logging:Build(log, name, "WARNING")
-	log.Error = logging:Build(log, name, "ERROR")
-	log.Critical = logging:Build(log, name, "CRITICAL")
-	log.Fatal = logging:Build(log, name, "FATAL")
+	log.Trace1 = logging:Build(name, "TRACE1")
+	log.Trace2 = logging:Build(name, "TRACE2")
+	log.Trace3 = logging:Build(name, "TRACE3")
+	log.Debug = logging:Build(name, "DEBUG")
+	log.Info = logging:Build(name, "INFO")
+	log.Warning = logging:Build(name, "WARNING")
+	log.Error = logging:Build(name, "ERROR")
+	log.Critical = logging:Build(name, "CRITICAL")
+	log.Fatal = logging:Build(name, "FATAL")
 
 	return log
 end
@@ -273,6 +275,22 @@ function logging:Highlight(...)
 	local hl = {self.Colours.Highlights, ...}
 	table.insert(hl, self.Colours.Text)
 	return hl
+end
+
+function logging:AsLevel(level, ...)
+	local parsed = self:Parse(level:upper())
+	if parsed == nil then
+		return {...}
+	end
+
+	local color = self.Colours[parsed] or self.Colours.Text
+	if select('#', ...) == 0 then
+		return {color, level, self.Colours.Text}
+	end
+
+	local out = {color, ...}
+	table.insert(out, self.Colours.Text)
+	return out
 end
 
 logging.Phrases = {
@@ -384,3 +402,82 @@ end
 
 -- Preload the root logger.
 logging:GetLogger("")
+
+concommand.Add("pulsarlib_logging_setserverlevel", function(ply, _, args)
+	if not SERVER then
+		return
+	end
+
+	local function output(...)
+		logging:Root():Info(true, ...)
+	end
+	if IsValid(ply) then
+		if not ply:IsSuperAdmin() then
+			return ply:ChatPrint("You are not authorised to set the server logging level!")
+		end
+
+		-- Overwrite our local print function.
+		-- To pass all our output to the calling client.
+		function output(...)
+			local out = flatten({...})
+			for i = 1, #out do
+				if out[i] and IsColor(out[i]) then
+					table.remove(out, i)
+				end
+			end
+
+			ply:PrintMessage(HUD_PRINTCONSOLE, table.concat(out, ""))
+		end
+	end
+
+	local cnt = #args
+	if cnt == 0 or cnt > 2 then
+		output("USAGE: pulsarlib_logging_setserverlevel [<logger>] <level>")
+		output("logger: Optional name of the logger, as seen in your console.")
+		output("        If not set, defaults to root logger.")
+		output("level: Either a Level Enum Name, or a integer value of either -1, or between 0 and 100.")
+		output("       Levels: ", logging:AsLevel("FATAL"), ", ", logging:AsLevel("CRITICAL"), ", ", logging:AsLevel("ERROR"), ", ", logging:AsLevel("WARNING"), ", ", logging:AsLevel("INFO"), ", ", logging:AsLevel("DEBUG"), ", ", logging:AsLevel("TRACE1"), ", ", logging:AsLevel("TRACE2"), ", ", logging:AsLevel("TRACE3"))
+		output("       Special Values: DEFAULT, NONE, ANY, INHERIT")
+		output()
+		output("Setting a logger's level will disallow displaying any logs below that level.")
+		output("Any child loggers not explicitly set will also inherit this level.")
+		output("Ie. Setting a logger to NONE will disallow all messages.")
+		output("Ie. Setting a logger to ERROR will allow ERROR, CRITICAL and FATAL messages.")
+		return
+	end
+
+	if cnt == 1 then
+		return logging:Root():SetLevel(args[1]):Info(true, "Logging Level Set")
+	end
+
+	if cnt == 2 then
+		return logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging Level Set")
+	end
+end)
+if CLIENT then
+	concommand.Add("pulsarlib_logging_setclientlevel", function(_, _, args)
+		local cnt = #args
+		if cnt == 0 or cnt > 2 then
+			logging:Root():Info(true, "USAGE: pulsarlib_logging_setclientlevel [<logger>] <level>")
+			logging:Root():Info(true, "logger: Optional name of the logger, as seen in your console.")
+			logging:Root():Info(true, "        If not set, defaults to root logger.")
+			logging:Root():Info(true, "level: Either a Level Enum Name, or a integer value of either -1, or between 0 and 100.")
+			logging:Root():Info(true, "       Levels: ", logging:AsLevel("FATAL"), ", ", logging:AsLevel("CRITICAL"), ", ", logging:AsLevel("ERROR"), ", ", logging:AsLevel("WARNING"), ", ", logging:AsLevel("INFO"), ", ", logging:AsLevel("DEBUG"), ", ", logging:AsLevel("TRACE1"), ", ", logging:AsLevel("TRACE2"), ", ", logging:AsLevel("TRACE3"))
+			logging:Root():Info(true, "       Special Values: DEFAULT, NONE, ANY, INHERIT")
+			logging:Root():Info(true)
+			logging:Root():Info(true, "Setting a logger's level will disallow displaying any logs below that level.")
+			logging:Root():Info(true, "Any child loggers not explicitly set will also inherit this level.")
+			logging:Root():Info(true, "Ie. Setting a logger to NONE will disallow all messages.")
+			logging:Root():Info(true, "Ie. Setting a logger to ERROR will allow ERROR, CRITICAL and FATAL messages.")
+			return
+		end
+
+		if cnt == 1 then
+			return logging:Root():SetLevel(args[1]):Info(true, "Logging Level Set")
+		end
+
+		if cnt == 2 then
+			return logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging Level Set")
+		end
+	end)
+end

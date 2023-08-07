@@ -14,7 +14,7 @@ function PulsarLib:Include(path, state, full)
 		loadLogger = self.Logging:Get("Loader")
 	end
 	if loadLogger then
-		loadLogger.Debug("Prefix: ", prefix, ". Path: '", path, "'")
+		loadLogger:Debug("Prefix: ", prefix, ". Path: '", path, "'")
 	end
 
 	if prefix ~= "sv" then
@@ -34,7 +34,7 @@ function PulsarLib:IncludeDir(path, state)
 	end
 
 	if loadLogger then
-		loadLogger.Debug("Including Directory: '", path, "'")
+		loadLogger:Debug("Including Directory: '", path, "'")
 	end
 
 	local files = file.Find(path .. "*", "LUA")
@@ -52,7 +52,7 @@ function PulsarLib:IncludeDirRecursive(path, state, full)
 	end
 
 	if loadLogger then
-		loadLogger.Debug("Recursive Include of: '", path, "'")
+		loadLogger:Debug("Recursive Include of: '", path, "'")
 	end
 
 	local files, folders = file.Find(path .. "*", "LUA")
