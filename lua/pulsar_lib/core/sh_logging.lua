@@ -403,6 +403,17 @@ end
 -- Preload the root logger.
 logging:GetLogger("")
 
+local function autoComplete(cmd)
+	local tbl = {}
+	for k, v in pairs(logging.Levels) do
+		if k ~= "DEFAULT" then
+			table.insert(tbl, cmd .. " " .. k:lower())
+		end
+	end
+
+	return tbl
+end
+
 concommand.Add("pulsarlib_logging_setserverlevel", function(ply, _, args)
 	if not SERVER then
 		return
@@ -447,13 +458,13 @@ concommand.Add("pulsarlib_logging_setserverlevel", function(ply, _, args)
 	end
 
 	if cnt == 1 then
-		return logging:Root():SetLevel(args[1]):Info(true, "Logging Level Set")
+		return logging:Root():SetLevel(args[1]):Info(true, "Logging level set to '", args[1], "'")
 	end
 
 	if cnt == 2 then
-		return logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging Level Set")
+		return logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'")
 	end
-end)
+end, autoComplete)
 if CLIENT then
 	concommand.Add("pulsarlib_logging_setclientlevel", function(_, _, args)
 		local cnt = #args
@@ -473,11 +484,11 @@ if CLIENT then
 		end
 
 		if cnt == 1 then
-			return logging:Root():SetLevel(args[1]):Info(true, "Logging Level Set")
+			return logging:Root():SetLevel(args[1]):Info(true, "Logging level set to '", args[1], "'")
 		end
 
 		if cnt == 2 then
-			return logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging Level Set")
+			return logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'")
 		end
 	end)
 end
