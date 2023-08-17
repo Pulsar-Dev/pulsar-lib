@@ -139,6 +139,7 @@ function AddonHandler:Load()
 	self.GlobalVar.IncludeDirRecursive = loaders.IncludeDirRecursive
 
 	local logger_command_name = self.name:lower():gsub("[%s]", "")
+
 	concommand.Add(logger_command_name .. "_logging_setserverlevel", function(ply, _, args)
 		if CLIENT then
 			return
@@ -155,7 +156,7 @@ function AddonHandler:Load()
 			-- Overwrite our local print function.
 			-- To pass all our output to the calling client.
 			function output(...)
-				local out = PulsarLib.Logging.flatten({...})
+				local out = self.GlobalVar.Logging.flatten({...})
 				for i = 1, #out do
 					if out[i] and IsColor(out[i]) then
 						table.remove(out, i)
@@ -172,7 +173,7 @@ function AddonHandler:Load()
 			output("logger: Optional name of the logger, as seen in your console.")
 			output("        If not set, defaults to root logger.")
 			output("level: Either a Level Enum Name, or a integer value of either -1, or between 0 and 100.")
-			output("       Levels: ", PulsarLib.Logging:AsLevel("FATAL"), ", ", PulsarLib.Logging:AsLevel("CRITICAL"), ", ", PulsarLib.Logging:AsLevel("ERROR"), ", ", PulsarLib.Logging:AsLevel("WARNING"), ", ", PulsarLib.Logging:AsLevel("INFO"), ", ", PulsarLib.Logging:AsLevel("DEBUG"), ", ", PulsarLib.Logging:AsLevel("TRACE1"), ", ", PulsarLib.Logging:AsLevel("TRACE2"), ", ", PulsarLib.Logging:AsLevel("TRACE3"))
+			output("       Levels: ", self.GlobalVar.Logging:AsLevel("FATAL"), ", ", self.GlobalVar.Logging:AsLevel("CRITICAL"), ", ", self.GlobalVar.Logging:AsLevel("ERROR"), ", ", self.GlobalVar.Logging:AsLevel("WARNING"), ", ", self.GlobalVar.Logging:AsLevel("INFO"), ", ", self.GlobalVar.Logging:AsLevel("DEBUG"), ", ", self.GlobalVar.Logging:AsLevel("TRACE1"), ", ", self.GlobalVar.Logging:AsLevel("TRACE2"), ", ", self.GlobalVar.Logging:AsLevel("TRACE3"))
 			output("       Special Values: DEFAULT, NONE, ANY, INHERIT")
 			output()
 			output("Setting a logger's level will disallow displaying any logs below that level.")
@@ -183,13 +184,11 @@ function AddonHandler:Load()
 		end
 
 		if cnt == 1 then
-			logging:Root():SetLevel(args[1])
-			return output("Logging Level Set")
+			return self.GlobalVar.Logging:Root():SetLevel(args[1]):Info(true, "Logging level set to '", args[1], "'")
 		end
 
 		if cnt == 2 then
-			logging:GetLogger(args[1]):SetLevel(args[2])
-			return output("Logging Level Set")
+			return self.GlobalVar.Logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'")
 		end
 	end)
 	if CLIENT then
@@ -211,11 +210,11 @@ function AddonHandler:Load()
 			end
 
 			if cnt == 1 then
-				return self.GlobalVar.Logging:Root():SetLevel(args[1]):Info(true, "Logging Level Set")
+				return self.GlobalVar.Logging:Root():SetLevel(args[1]):Info(true, "Logging level set to '", args[1], "'")
 			end
 
 			if cnt == 2 then
-				return self.GlobalVar.Logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging Level Set")
+				return self.GlobalVar.Logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'")
 			end
 		end)
 	end
