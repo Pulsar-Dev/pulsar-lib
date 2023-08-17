@@ -105,7 +105,7 @@ function modules:Load(module)
 
 			local includePath = moduleLuaPath .. dir
 			local prefix = dir:match("/?(%w%w)[%w_]*.lua$") or "sh"
-			logging:Get("Loader").Debug("Prefix: ", highlightCol,  prefix, textCol, ". Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, dir, textCol, "'")
+			logging:Get("Loader"):Debug("Prefix: ", highlightCol,  prefix, textCol, ". Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, dir, textCol, "'")
 
 			local currentDirPath = debug.getinfo(2).source:match("@(.*/)")
 
@@ -142,7 +142,7 @@ function modules:Load(module)
 
 			local includePath = moduleLuaPath .. dir
 			local prefix = includePath:match("/?(%w%w)[%w_]*.lua$") or "sh"
-			logging:Get("Loader").Debug("Prefix: ", highlightCol,  prefix, textCol, ". Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, dir, textCol, "'")
+			logging:Get("Loader"):Debug("Prefix: ", highlightCol,  prefix, textCol, ". Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, dir, textCol, "'")
 
 			local currentDirPath = debug.getinfo(2).source:match("@(.*/)")
 
@@ -176,7 +176,7 @@ function modules:Load(module)
 		AddCSLuaFile = oldAddCS
 		file.Find = oldFileFind
 
-		logging:Get("Loader").Debug("Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, path, textCol, "'")
+		logging:Get("Loader"):Debug("Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, path, textCol, "'")
 
 	end
 
