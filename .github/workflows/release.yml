@@ -15,7 +15,6 @@ jobs:
         with:
           repository: Pulsar-Dev/pulsar-lib
           ref: master
-          token: ${{ secrets.REPO_ACCESS_TOKEN }}
           submodules: recursive
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
