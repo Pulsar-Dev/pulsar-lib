@@ -1,5 +1,9 @@
 PulsarLib = PulsarLib or {}
 
+if file.Exists("pulsarlib/dev", "DATA") then
+	PulsarLib.DevelopmentMode = true
+end
+
 local loadLogger
 function PulsarLib:Include(path, state, full)
 	if not full then
@@ -17,12 +21,12 @@ function PulsarLib:Include(path, state, full)
 		loadLogger:Debug("Prefix: ", prefix, ". Path: '", path, "'")
 	end
 
-	if prefix ~= "sv" then
+	if prefix == "sh" or prefix == "cl" then
 		AddCSLuaFile(path)
 		if CLIENT or prefix == "sh" then
 			return include(path)
 		end
-	elseif SERVER then
+	elseif SERVER and prefix == "sv" then
 		return include(path)
 	end
 end

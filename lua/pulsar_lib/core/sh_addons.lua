@@ -238,6 +238,11 @@ function AddonHandler:Load()
 
 	PulsarLib.Logging:Info("Addon " .. self.name .. " was created and is ready to load.")
 
+	if PulsarLib.DevelopmentMode then
+		loadable = true
+		PulsarLib.Logging:Debug("Development mode enabled, skipping dependency check")
+	end
+
 	if self.Folder and loadable then
 		self.GlobalVar:Include(self.Folder .. "/sh_init.lua", "sh", true)
 		if self.OnLoad then
