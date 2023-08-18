@@ -129,7 +129,7 @@ function HANDLER:Interpolate(str, data)
 		data = {}
 	end
 
-	logger.Debug("Interpolating '", str, "'")
+	logger:Debug("Interpolating '", str, "'")
 
 	local old = str
 	local pattern = "{{([%w|_.:]+)}}"
@@ -138,22 +138,22 @@ function HANDLER:Interpolate(str, data)
 		local t = substr:match("([%w]+):")
 
 		if not t then
-			logger.Debug("Found ", substr, " with no type, assuming data key.")
+			logger:Debug("Found ", substr, " with no type, assuming data key.")
 			str = str:gsub("{{" .. substr .. "}}", data[substr] or "")
 		elseif t == "var" then
-			logger.Debug("Found data key: ", substr)
+			logger:Debug("Found data key: ", substr)
 			str = str:gsub("{{" .. substr .. "}}", data[substr:sub(#t + 2)] or "")
 		elseif t == "plural" then
 			local name, key = substr:match(":([%w._]+)|([%w._]+)")
-			logger.Debug("Requested Plural: ", name, " with key ", key, " mapping to ", data[key])
+			logger:Debug("Requested Plural: ", name, " with key ", key, " mapping to ", data[key])
 			str = str:gsub("{{" .. substr .. "}}", self:Plural(name, data[key]))
 		elseif t == "phrase" then
 			local name = substr:match(":([%w._]+)")
-			logger.Debug("Requested Phrase: ", name)
+			logger:Debug("Requested Phrase: ", name)
 			str = str:gsub("{{" .. substr .. "}}", self:Phrase(name))
 		elseif t == "interp" then
 			local name = substr:match(":([%w._]+)")
-			logger.Debug("Requested Child Interpolation: ", name)
+			logger:Debug("Requested Child Interpolation: ", name)
 			str = str:gsub("{{" .. substr .. "}}", self:Interpolate(self:Phrase(name), data))
 		else
 			str = str:gsub("{{" .. substr .. "}}", "!!" .. substr .. "!!")
@@ -166,8 +166,8 @@ function HANDLER:Interpolate(str, data)
 		substr = str:match(pattern)
 	end
 
-	logger.Debug("Final Result")
-	logger.Debug(str)
+	logger:Debug("Final Result")
+	logger:Debug(str)
 	return str
 end
 

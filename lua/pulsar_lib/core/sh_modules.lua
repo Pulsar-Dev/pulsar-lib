@@ -56,7 +56,7 @@ function modules:Fetch(module)
 	module = self.ModulesList[module]
 
 	if not module then
-		PulsarLib.Logging.Error("Attempted to fetch module that doesn't exist.")
+		PulsarLib.Logging:Error("Attempted to fetch module that doesn't exist.")
 		return
 	end
 
