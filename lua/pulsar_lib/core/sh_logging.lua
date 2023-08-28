@@ -56,9 +56,6 @@ logging.Levels = {
 	INHERIT = -1
 }
 logging.Levels.DEFAULT = logging.Levels.WARNING
-if PulsarLib.DevelopmentMode then
-	logging:Root():SetLevel("ANY")
-end
 logging.Levels._MAX = logging.Levels.NONE
 logging.Levels._MIN = logging.Levels.ANY
 
@@ -494,4 +491,8 @@ if CLIENT then
 			return logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'")
 		end
 	end)
+end
+
+if PulsarLib.DevelopmentMode then
+	logging:Root():SetLevel("ANY")
 end
