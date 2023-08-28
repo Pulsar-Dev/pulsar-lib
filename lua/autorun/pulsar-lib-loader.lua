@@ -56,7 +56,7 @@ function PulsarLib:IncludeDirRecursive(path, state, full)
 	end
 
 	if loadLogger then
-		loadLogger:Debug("Recursive Include of: '", path, "'")
+		loadLogger:Debug("Recursive Include of: '", loadLogger:Highlight(path), "'")
 	end
 
 	local files, folders = file.Find(path .. "*", "LUA")

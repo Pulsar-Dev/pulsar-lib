@@ -17,9 +17,10 @@ loaders.Include = function(self, path, state, full)
 	end
 
 	local prefix = state or path:match("/?(%w%w)[%w_]*.lua$") or "sh"
+	local logger = self.GlobalVar.Logging:Get("Loader")
 
-	if self.GlobalVar.Logging:Get("Loader") then
-		self.GlobalVar.Logging:Get("Loader"):Debug("Prefix: ", prefix, ". Path: '", path, "'")
+	if logger then
+		logger:Debug("Prefix: ", logger:Highlight(prefix), ". Path: '", logger:Highlight(path), "'")
 	end
 
 	if prefix ~= "sv" then
@@ -38,8 +39,10 @@ loaders.IncludeDir = function(self, path, state)
 		path = path .. "/"
 	end
 
-	if self.Logging:Get("Loader") then
-		self.Logging:Get("Loader"):Debug("Including Directory: '", path, "'")
+	local logger = self.GlobalVar and self.GlobalVar.Logging:Get("Loader")
+
+	if logger then
+		logger:Debug("Including Directory: '", logger:Highlight(path), "'")
 	end
 
 	local files = file.Find(path .. "*", "LUA")
@@ -56,8 +59,11 @@ loaders.IncludeDirRecursive = function(self, path, state, full)
 		path = path .. "/"
 	end
 
-	if self.Logging:Get("Loader") then
-		self.Logging:Get("Loader"):Debug("Recursive Include of: '", path, "'")
+	local logger = self.GlobalVar and self.GlobalVar.Logging:Get("Loader")
+
+	if logger then
+
+		logger:Debug("Recursive Include of: '", logger:Highlight(path), "'")
 	end
 
 	local files, folders = file.Find(path .. "*", "LUA")
@@ -125,7 +131,7 @@ function AddonHandler:Load()
 	if self.Phrases then
 		self.GlobalVar.Logging.stored = {}
 		self.GlobalVar.Logging.Phrases = self.Phrases
-		self.GlobalVar.Logging:Get("")
+		self.GlobalVar.Logging:GetLogger("")
 	end
 
 	self.GlobalVar.Language = table.Copy(PulsarLib.Language)

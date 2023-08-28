@@ -3,7 +3,7 @@
 PulsarLib.ModuleTable = {
     ["PulsarLib"] = {
         Hook = "PulsarLib.Loaded",
-        Global = PulsarLib, -- This dont have to be a string, as we know the addon is loaded.
+        Global = PulsarLib, -- This dont have to be a string, as we know the addon is loaded or loading.
         Loaded = true
     },
     ["pixelui"] = {
