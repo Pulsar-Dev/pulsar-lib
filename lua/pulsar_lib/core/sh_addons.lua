@@ -236,6 +236,8 @@ function AddonHandler:Load()
 		end
 	end
 
+	print("Addon " .. self.name .. " is " .. (loadable and "loadable" or "not loadable"))
+
 	PulsarLib.Logging:Info("Addon " .. self.name .. " was created and is ready to load.")
 
 	if PulsarLib.DevelopmentMode then

@@ -12,7 +12,7 @@ local loggingCol = PulsarLib.Logging.Colours
 local highlightCol = loggingCol.Highlights
 local textCol = loggingCol.Text
 
-local excludeList = { -- A list of folders that shouldn't be replaced in `include` and `AddCSLuaFile` functions
+local excludeList = {-- A list of folders that shouldn't be replaced in `include` and `AddCSLuaFile` functions
 	["includes"] = true
 }
 
@@ -24,6 +24,7 @@ function modules:Scan()
 
 	for k, v in ipairs(files) do
 		local name = string.StripExtension(v)
+		if name == "README" then continue end
 		if PulsarLib.ModuleTable[name] and PulsarLib.ModuleTable[name].Hook then
 			PulsarLib.ModuleTable[name].Loaded = false
 		end

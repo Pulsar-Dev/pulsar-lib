@@ -18,7 +18,7 @@ function PulsarLib:Include(path, state, full)
 		loadLogger = self.Logging:Get("Loader")
 	end
 	if loadLogger then
-		loadLogger:Debug("Prefix: ", prefix, ". Path: '", path, "'")
+		loadLogger:Debug("Prefix: ", loadLogger:Highlight(prefix), ". Path: '", loadLogger:Highlight(path), "'")
 	end
 
 	if prefix == "sh" or prefix == "cl" then
@@ -38,7 +38,7 @@ function PulsarLib:IncludeDir(path, state)
 	end
 
 	if loadLogger then
-		loadLogger:Debug("Including Directory: '", path, "'")
+		loadLogger:Debug("Including Directory: '", loadLogger:Highlight(path), "'")
 	end
 
 	local files = file.Find(path .. "*", "LUA")
@@ -68,4 +68,4 @@ function PulsarLib:IncludeDirRecursive(path, state, full)
 	end
 end
 
-PulsarLib:Include("sh_init")
+PulsarLib:Include("sh_init") 

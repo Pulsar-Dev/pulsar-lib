@@ -55,7 +55,7 @@ logging.Levels = {
 	ANY = 0,
 	INHERIT = -1
 }
-logging.Levels.DEFAULT = logging.Levels.WARNING
+logging.Levels.DEFAULT = not PulsarLib.DevelopmentMod and logging.Levels.WARNING or logging.Levels.ANY
 logging.Levels._MAX = logging.Levels.NONE
 logging.Levels._MIN = logging.Levels.ANY
 
