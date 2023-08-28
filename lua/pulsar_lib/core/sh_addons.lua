@@ -233,7 +233,7 @@ function AddonHandler:Load()
 		loadable = true
 
 		for k, v in pairs(self.Dependencies) do
-			if not PulsarLib.ModuleTable[k].Loaded then
+			if not k or not PulsarLib.ModuleTable[k].Loaded then
 				PulsarLib.Logging:Debug("Addon " .. self.name .. " waiting for " .. k .. " to load")
 				loadable = false
 				PulsarLib.Addons.WaitingForDeps[self.name] = self
@@ -242,14 +242,14 @@ function AddonHandler:Load()
 		end
 	end
 
-	print("Addon " .. self.name .. " is " .. (loadable and "loadable" or "not loadable"))
-
 	PulsarLib.Logging:Info("Addon " .. self.name .. " was created and is ready to load.")
 
-	if PulsarLib.DevelopmentMode then
-		loadable = true
-		PulsarLib.Logging:Debug("Development mode enabled, skipping dependency check")
-	end
+	-- if PulsarLib.DevelopmentMode and not loadable then
+	-- 	loadable = true
+	-- 	PulsarLib.Logging:Debug("Development mode enabled, skipping dependency check and loading anyway.")
+	-- 	PulsarLib.Logging:Debug("Waiting for dependencies: ", table.concat(self.Dependencies) .. ".")
+	-- 	PrintTable(self.Dependencies)
+	-- end
 
 	if self.Folder and loadable then
 		self.GlobalVar:Include(self.Folder .. "/sh_init.lua", "sh", true)

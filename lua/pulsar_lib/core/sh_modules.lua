@@ -72,6 +72,11 @@ end
 function modules:Load(module)
 	module = istable(module) and module or self:Fetch(module)
 
+	if PulsarLib.ModuleTable[module.name] and PulsarLib.ModuleTable[module.name].Loaded then
+		logging:Warning("'", highlightCol, module.name, textCol, "' module already loaded.")
+		return
+	end
+
 	oldInclude = oldInclude or include
 	oldAddCS = oldAddCS or AddCSLuaFile
 	oldFileFind = oldFileFind or file.Find
@@ -178,24 +183,45 @@ function modules:Load(module)
 		file.Find = oldFileFind
 
 		logging:Get("Loader"):Debug("Module: '", highlightCol, module.name, textCol, "' Path: '", highlightCol, path, textCol, "'")
-
 	end
 
-	if PulsarLib.ModuleTable[module.name] and PulsarLib.ModuleTable[module.name].Global and _G[PulsarLib.ModuleTable[module.name].Global] then
-		logging:Debug("'", highlightCol, module.name, textCol, "' module successfully loaded")
-		PulsarLib.ModuleTable[module.name].Loaded = true
-		PulsarLib.Dependency.Loaded(module.name)
+	local moduleTable = PulsarLib.ModuleTable[module.name]
+	if not moduleTable then
+		logging:Warning("'", highlightCol, module.name, textCol, "' module doesn't exist in PulsarLib.ModuleTable. Module loaded but not registered.")
 		return
 	end
 
-	if PulsarLib.ModuleTable[module.name] and PulsarLib.ModuleTable[module.name].Hook then
-		hook.Add(PulsarLib.ModuleTable[module.name].Hook, "PulsarLib.DependancyLoader", function()
+	if not moduleTable.Global then
+		logging:Warning("'", highlightCol, module.name, textCol, "' module doesn't have a global variable set. Module loaded but not registered.")
+		moduleTable.Loaded = true
+		return
+	end
+
+	if (not istable(moduleTable.Global)) and (not _G[moduleTable.Global]) then
+		logging:Warning("'", highlightCol, module.name, textCol, "' module global variable doesn't exist. Module loaded but not registered.")
+		moduleTable.Loaded = true
+		return
+	end
+
+	if moduleTable.Hook then
+		logging:Debug("'", highlightCol, module.name, textCol, "' module hook received. Waiting for hook to be called. (", highlightCol, moduleTable.Hook, textCol, ")")
+
+		local function finishedLoad()
 			logging:Debug("'", highlightCol, module.name, textCol, "' module hook received. Module successfully loaded.")
-			PulsarLib.ModuleTable[module.name].Loaded = true
+			moduleTable.Global = _G[moduleTable.Global] or moduleTable.Global
+			moduleTable.Loaded = true
 			PulsarLib.Dependency.Loaded(module.name)
-		end)
-	elseif PulsarLib.ModuleTable[module.name] then
-		PulsarLib.ModuleTable[module.name].Loaded = true
+		end
+
+		hook.Add(moduleTable.Hook, "PulsarLib.DependancyLoader", finishedLoad)
+
+		if _G[moduleTable.Global] then
+			finishedLoad()
+		end
+	else
+		logging:Debug("'", highlightCol, module.name, textCol, "' module successfully loaded")
+		moduleTable.Global = _G[moduleTable.Global] or moduleTable.Global
+		moduleTable.Loaded = true
 		PulsarLib.Dependency.Loaded(module.name)
 	end
 end
