@@ -4,7 +4,7 @@ PulsarLib.Addons = PulsarLib.Addons or setmetatable({
 }, {__index = PulsarLib})
 
 PulsarLib.Addons.WaitingForDeps = PulsarLib.Addons.WaitingForDeps or {}
-
+PulsarLib.Addons.Registered = PulsarLib.Addons.Registered or {}
 local loaders = {}
 
 loaders.Include = function(self, path, state, full)
@@ -112,6 +112,11 @@ end
 
 function AddonHandler:SetDependencies(deps)
 	self.Dependencies = deps
+	return self
+end
+
+function AddonHandler:SetRequiredVars(requiredVars)
+	self.RequiredVars = requiredVars
 	return self
 end
 
@@ -227,6 +232,7 @@ function AddonHandler:Load()
 
 
 	local loadable = false
+
 	if not istable(self.Dependencies) or (table.Count(self.Dependencies) == 0) then
 		loadable = true
 	else
@@ -242,14 +248,31 @@ function AddonHandler:Load()
 		end
 	end
 
-	PulsarLib.Logging:Info("Addon " .. self.name .. " was created and is ready to load.")
+	if self.RequiredVars then
+		local allRequired = true
+		local failed = {}
 
-	-- if PulsarLib.DevelopmentMode and not loadable then
-	-- 	loadable = true
-	-- 	PulsarLib.Logging:Debug("Development mode enabled, skipping dependency check and loading anyway.")
-	-- 	PulsarLib.Logging:Debug("Waiting for dependencies: ", table.concat(self.Dependencies) .. ".")
-	-- 	PrintTable(self.Dependencies)
-	-- end
+		for k, v in pairs(self.RequiredVars) do
+			if not PulsarLib.Dependency.VariableExists(v) then
+				allRequired = false
+				failed[#failed + 1] = v
+			end
+		end
+
+		if not allRequired then
+			loadable = false
+			for i = 1, 20 do
+				PulsarLib.Logging:Critical("Addon " .. self.name .. " is missing required variables: " .. table.concat(failed, ", ") .. ". Not loading.")
+			end
+			PulsarLib.Dependency.Failed.Addons[self.name] = {
+				Client = "PulsarLib Addon " .. self.name .. " has failed to load. Check server console for more information.",
+				Server = "Addon " .. self.name .. " is missing required variables: " .. table.concat(failed, ", ") .. ". Not loading."
+			}
+			return
+		end
+	end
+
+	PulsarLib.Logging:Info("Addon " .. self.name .. " was created and is ready to load.")
 
 	if self.Folder and loadable then
 		self.GlobalVar:Include(self.Folder .. "/sh_init.lua", "sh", true)
@@ -257,6 +280,8 @@ function AddonHandler:Load()
 			self:OnLoad()
 		end
 	end
+
+	table.insert(PulsarLib.Addons.Registered, self.name)
 end
 
 addons.Create = AddonHandler.Create

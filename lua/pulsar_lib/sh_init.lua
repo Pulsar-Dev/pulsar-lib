@@ -8,6 +8,7 @@ PulsarLib.ModuleTable = {
     },
     ["pixelui"] = {
         Hook = "PIXEL.UI.FullyLoaded",
+        Requires = "PIXEL.UI.PulsarFork", -- This is a string, as we dont know if the addon is loaded or not.
         Global = "PIXEL" -- This must be a string, as chances are the addon hasn't loaded yet.
     },
     ["gm_express"] = {
@@ -18,6 +19,7 @@ PulsarLib.ModuleTable = {
 
 PulsarLib:Include("core/sh_functional")
 PulsarLib:Include("core/sh_logging")
+PulsarLib:Include("core/sh_notify")
 PulsarLib:Include("core/sh_dependencies")
 PulsarLib:Include("core/sh_modules")
 PulsarLib:Include("core/sql/sv_sql")

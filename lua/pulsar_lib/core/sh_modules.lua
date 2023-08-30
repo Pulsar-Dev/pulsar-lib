@@ -3,6 +3,8 @@ PulsarLib.Modules = PulsarLib.Modules or setmetatable({
 	stored = {}
 }, {__index = PulsarLib})
 
+PulsarLib.Modules.Registered = PulsarLib.Modules.Registered or {}
+
 local oldInclude = include
 local oldAddCS = AddCSLuaFile
 local oldFileFind = file.Find
@@ -191,16 +193,53 @@ function modules:Load(module)
 		return
 	end
 
-	if not moduleTable.Global then
+	if not moduleTable.Global and moduleTable.Global ~= false then
 		logging:Warning("'", highlightCol, module.name, textCol, "' module doesn't have a global variable set. Module loaded but not registered.")
 		moduleTable.Loaded = true
 		return
 	end
 
-	if (not istable(moduleTable.Global)) and (not _G[moduleTable.Global]) then
+	if moduleTable.Global ~= false and (not istable(moduleTable.Global)) and (not _G[moduleTable.Global]) then
 		logging:Warning("'", highlightCol, module.name, textCol, "' module global variable doesn't exist. Module loaded but not registered.")
 		moduleTable.Loaded = true
 		return
+	end
+
+	if moduleTable.Requires then
+		if istable(moduleTable.Requires) then
+			local allRequired = true
+			local failed = {}
+			for k, v in pairs(moduleTable.Requires) do
+				if not PulsarLib.Dependency.VariableExists(v) then
+					allRequired = false
+					failed[#failed + 1] = v
+				end
+			end
+
+			if not allRequired then
+				for i = 1, 3 do
+					logging:Critical("'", highlightCol, module.name, textCol, "' module variable(s) '", highlightCol, table.concat(failed, ", "), textCol, "' doesn't exist. Module loaded but not registered.")
+				end
+				PulsarLib.Dependency.Failed.Modules[module.name] = {
+					Client = "PulsarLib module '" .. module.name .. "' failed to load. Check server console for more information.",
+					Server = "'" .. module.name .. "' module variable(s) '" .. moduleTable.Requires .. "' doesn't exist. Module loaded but not registered."
+				}
+				moduleTable.Loaded = true
+				return
+			end
+		else
+			if not PulsarLib.Dependency.VariableExists(moduleTable.Requires) then
+				for i = 1, 3 do
+					logging:Critical("'", highlightCol, module.name, textCol, "' module variable(s) '", highlightCol, moduleTable.Requires, textCol, "' doesn't exist. Module loaded but not registered.")
+				end
+				PulsarLib.Dependency.Failed.Modules[module.name] = {
+					Client = "PulsarLib module '" .. module.name .. "' failed to load. Check server console for more information.",
+					Server = "'" .. module.name .. "' module variable(s) '" .. moduleTable.Requires .. "' doesn't exist. Module loaded but not registered."
+				}
+				moduleTable.Loaded = true
+				return
+			end
+		end
 	end
 
 	if moduleTable.Hook then
@@ -224,6 +263,8 @@ function modules:Load(module)
 		moduleTable.Loaded = true
 		PulsarLib.Dependency.Loaded(module.name)
 	end
+
+	table.insert(PulsarLib.Modules.Registered, module.name)
 end
 
 function modules:LoadAll()
