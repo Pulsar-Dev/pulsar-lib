@@ -14,6 +14,10 @@ PulsarLib.ModuleTable = {
     ["gm_express"] = {
         Hook = false,
         Global = false
+    },
+    ["updatr"] = {
+        Hook = "Updatr.FullyLoaded",
+        Global = "Updatr"
     }
 }
 
