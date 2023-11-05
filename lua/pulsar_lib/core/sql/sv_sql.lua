@@ -164,7 +164,6 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
 
-	self:FetchDetails()
 
 	if self.Details.UsingMySQL then
 		local queryObj = self.Connection:prepare(query)
