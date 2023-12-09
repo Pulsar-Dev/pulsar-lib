@@ -26,6 +26,7 @@ PulsarLib:Include("core/sh_logging")
 PulsarLib:Include("core/sh_notify")
 PulsarLib:Include("core/sh_dependencies")
 PulsarLib:Include("core/sh_modules")
+PulsarLib:IncludeDir("core/modules")
 PulsarLib:Include("core/sql/sv_sql")
 
 PulsarLib:IncludeDir("lang")
