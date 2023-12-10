@@ -1,7 +1,6 @@
 PulsarLib.Modules = PulsarLib.Modules or {}
 PulsarLib.Modules.Loaded = PulsarLib.Modules.Loaded or {}
 PulsarLib.Modules.Allowed = PulsarLib.Modules.Allowed or {}
-PulsarLib.Modules.BlockedLoad = PulsarLib.Modules.BlockedLoad or {}
 
 file.CreateDir("pulsarlib/modules")
 
@@ -28,6 +27,18 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 		if not exists then
 			PulsarLib.Logging:Error("Unable to load module '", logger:Highlight(module), "' (module does not exist)")
 			callback(false)
+			return
+		end
+
+		local moduleFolder = moduleMetaData.folder
+		if not moduleFolder then
+			PulsarLib.Logging:Warning("Module '", logger:Highlight(module), "' does not have a folder specified. It is recommend to add one to aid during development.")
+		end
+
+		if file.IsDir("addons/" .. moduleFolder, "GAME") then
+			PulsarLib.Logging:Fatal("Module '", logger:Highlight(module), "' is already installed as an addon. You must remove it from the addons folder to continue loading the module correctly.")
+			PulsarLib.Logging:Fatal("If you are developing this module, you can ignore this warning.")
+			callback(true)
 			return
 		end
 
@@ -147,3 +158,5 @@ hook.Add("Think", "PulsarLib.Modules.DownloadMetadata", function()
 
 	PulsarLib.Modules.DownloadMetadata()
 end)
+
+PulsarLib.Modules.LoadModule("updatr", "0.0.1", print)
