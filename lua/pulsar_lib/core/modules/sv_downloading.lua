@@ -240,6 +240,10 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
         local versionData = versionsData[version]
         local gmaDownloadURL = versionData.file
 
+        if not gmaDownloadURL:match("^https?://") then
+            gmaDownloadURL = baseURL .. "/" .. name .. "" .. gmaDownloadURL
+        end
+
         local gmaName = string.Split(gmaDownloadURL, "/")[#string.Split(gmaDownloadURL, "/")]
         local gmaPath = "pulsarlib/modules/" .. name .. "/versions/" .. version .. "/" .. gmaName
 
@@ -269,3 +273,8 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
         })
     end)
 end
+
+
+PulsarLib.Modules.DownloadModule("updatr", "0.0.1", function()
+    print("success?", success)
+end)
