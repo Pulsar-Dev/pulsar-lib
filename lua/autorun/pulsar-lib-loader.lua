@@ -4,8 +4,6 @@ if file.Exists("pulsarlib/dev", "DATA") then
 	PulsarLib.DevelopmentMode = true
 end
 
-PulsarLib.DevelopmentMode = true
-
 local loadLogger
 function PulsarLib:Include(path, state, full)
 	if not full then
