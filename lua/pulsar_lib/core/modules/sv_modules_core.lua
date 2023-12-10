@@ -1,18 +1,26 @@
 PulsarLib.Modules = PulsarLib.Modules or {}
 PulsarLib.Modules.Loaded = PulsarLib.Modules.Loaded or {}
+PulsarLib.Modules.Allowed = PulsarLib.Modules.Allowed or {}
+PulsarLib.Modules.BlockedLoad = PulsarLib.Modules.BlockedLoad or {}
 
 file.CreateDir("pulsarlib/modules")
 
+local emptyFunc = function() end
+
 function PulsarLib.Modules.LoadModule(module, version, callback)
+	callback = callback or emptyFunc
+
 	local logger = PulsarLib.Logging:Get("ModuleLoader")
 
 	if not module then
 		PulsarLib.Logging:Error("Unable to load module '", logger:Highlight(module), "' (no module specified)")
+		callback(false)
 		return nil
 	end
 
 	if not version then
 		PulsarLib.Logging:Error("Unable to load module '", logger:Highlight(module), "' (no version specified)")
+		callback(false)
 		return nil
 	end
 

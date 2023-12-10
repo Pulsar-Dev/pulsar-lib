@@ -15,7 +15,7 @@ function PulsarLib.Modules.DownloadMetadata(callback)
         success = function(code, body, headers)
             if code == 200 then
                 file.Write("pulsarlib/modules/metadata.json", body)
-                PulsarLib.Logging:Debug("Downloaded module metadata")
+                PulsarLib.Logging:Debug("Downloaded global metadata")
                 callback(true)
             else
                 PulsarLib.Logging:Error("Failed to download metadata: '", logger:Highlight(code), "'")
@@ -273,8 +273,3 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
         })
     end)
 end
-
-
-PulsarLib.Modules.DownloadModule("updatr", "0.0.1", function()
-    print("success?", success)
-end)
