@@ -121,8 +121,6 @@ function AddonHandler:SetRequiredVars(requiredVars)
 end
 
 function AddonHandler:Load()
-	if true then return end // REMOVE LATER
-
 	if not self.GlobalVar then
 		PulsarLib.Logging:Error("Addon " .. self.name .. " has no global var")
 		return
@@ -234,43 +232,43 @@ function AddonHandler:Load()
 
 
 	local loadable = false
+	local loadedDependencies = {}
 
 	if not istable(self.Dependencies) or (table.Count(self.Dependencies) == 0) then
 		loadable = true
 	else
+		for dependency, version in pairs(self.Dependencies) do
+			if not dependency then
+				PulsarLib.Logging:Error("Addon " .. self.name .. " has a dependency with no name")
+				return
+			end
+
+			if not version then
+				PulsarLib.Logging:Error("Addon " .. self.name .. " has a dependency with no version")
+				return
+			end
+
+			loadedDependencies[dependency] = false
+
+			PulsarLib.Logging:Debug("Addon " .. self.name .. " is waiting for " .. dependency .. " to load")
+			PulsarLib.Modules.LoadModule(dependency, version, function(success)
+				if not success then
+					PulsarLib.Logging:Error("Addon " .. self.name .. " failed to load because " .. dependency .. " failed to load")
+					loadable = false
+					return
+				end
+
+				loadedDependencies[dependency] = true
+			end)
+		end
+
 		loadable = true
 
-		for k, v in pairs(self.Dependencies) do
-			if not k or not PulsarLib.ModuleTable[k].Loaded then
-				PulsarLib.Logging:Debug("Addon " .. self.name .. " waiting for " .. k .. " to load")
+		for k, v in pairs(loadedDependencies) do
+			if not v then
 				loadable = false
-				PulsarLib.Addons.WaitingForDeps[self.name] = self
 				break
 			end
-		end
-	end
-
-	if self.RequiredVars then
-		local allRequired = true
-		local failed = {}
-
-		for k, v in pairs(self.RequiredVars) do
-			if not PulsarLib.Dependency.VariableExists(v) then
-				allRequired = false
-				failed[#failed + 1] = v
-			end
-		end
-
-		if not allRequired then
-			loadable = false
-			for i = 1, 20 do
-				PulsarLib.Logging:Critical("Addon " .. self.name .. " is missing required variables: " .. table.concat(failed, ", ") .. ". Not loading.")
-			end
-			PulsarLib.Dependency.Failed.Addons[self.name] = {
-				Client = "PulsarLib Addon " .. self.name .. " has failed to load. Check server console for more information.",
-				Server = "Addon " .. self.name .. " is missing required variables: " .. table.concat(failed, ", ") .. ". Not loading."
-			}
-			return
 		end
 	end
 
