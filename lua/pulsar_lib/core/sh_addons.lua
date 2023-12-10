@@ -121,6 +121,8 @@ function AddonHandler:SetRequiredVars(requiredVars)
 end
 
 function AddonHandler:Load()
+	if true then return end // REMOVE LATER
+
 	if not self.GlobalVar then
 		PulsarLib.Logging:Error("Addon " .. self.name .. " has no global var")
 		return
@@ -161,7 +163,7 @@ function AddonHandler:Load()
 		end
 		if IsValid(ply) then
 			if not ply:IsSuperAdmin() then
-				return ply:ChatPrint("You are not authorised to set the server logging level!")
+				return ply:ChatPrint("You are not authorized to set the server logging level!")
 			end
 
 			-- Overwrite our local print function.

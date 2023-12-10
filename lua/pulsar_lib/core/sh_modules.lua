@@ -72,6 +72,8 @@ end
 
 
 function modules:Load(module)
+	if true then return end // REMOVE LATER
+
 	module = istable(module) and module or self:Fetch(module)
 
 	if PulsarLib.ModuleTable[module.name] and PulsarLib.ModuleTable[module.name].Loaded then
@@ -280,4 +282,3 @@ end
 
 PulsarLib.Modules:Scan()
 PulsarLib.Modules:LoadAll()
-
