@@ -4,6 +4,8 @@ if file.Exists("pulsarlib/dev", "DATA") then
 	PulsarLib.DevelopmentMode = true
 end
 
+PulsarLib.DevelopmentMode = true
+
 local loadLogger
 function PulsarLib:Include(path, state, full)
 	if not full then
@@ -68,4 +70,4 @@ function PulsarLib:IncludeDirRecursive(path, state, full)
 	end
 end
 
-PulsarLib:Include("sh_init") 
+PulsarLib:Include("sh_init")

@@ -3,11 +3,12 @@ PulsarLib.Modules = PulsarLib.Modules or {}
 local baseURL = "https://raw.githubusercontent.com/Pulsar-Dev/pulsar-lib-modules/master"
 
 local emptyFunc = function() end
+local logger = PulsarLib.Logging:Get("ModuleLoader")
 
 function PulsarLib.Modules.DownloadMetadata(callback)
     callback = callback or emptyFunc
 
-    PulsarLib.Logging:Debug("Downloading module metadata")
+    PulsarLib.Logging:Debug("Downloading global metadata")
     HTTP({
         url = baseURL .. "/metadata.json",
         method = "GET",
@@ -17,12 +18,12 @@ function PulsarLib.Modules.DownloadMetadata(callback)
                 PulsarLib.Logging:Debug("Downloaded module metadata")
                 callback(true)
             else
-                PulsarLib.Logging:Error("Failed to download metadata: " .. code)
+                PulsarLib.Logging:Error("Failed to download metadata: '", logger:Highlight(code), "'")
                 callback(false)
             end
         end,
         failed = function(reason)
-            PulsarLib.Logging:Error("Failed to download metadata: " .. reason)
+            PulsarLib.Logging:Error("Failed to download metadata: '", logger:Highlight(reason), "'")
             callback(false)
         end
     })
@@ -62,7 +63,7 @@ function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
     local metadata = PulsarLib.Modules.GetMetadata()
 
     if not metadata[name] then
-        PulsarLib.Logging:Error("Module " .. name .. " does not exist")
+        PulsarLib.Logging:Error("Module '", logger:Highlight(name), "' does not exist")
         callback(false)
         return nil
     end
@@ -71,31 +72,46 @@ function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
         file.CreateDir("pulsarlib/modules/" .. name)
     end
 
-    if file.Exists("pulsarlib/modules/" .. name .. "/metadata.json", "DATA") then
-        PulsarLib.Logging:Debug("Module metadata for " .. name .. " already exists")
-        callback(true)
-        return
-    end
-
     local moduleDataURL = baseURL .. metadata[name] .. "/metadata.json"
-    HTTP({
-        url = moduleDataURL,
-        method = "GET",
-        success = function(code, body, headers)
-            if code == 200 then
-                file.Write("pulsarlib/modules/" .. name .. "/metadata.json", body)
-                PulsarLib.Logging:Debug("Downloaded module metadata for " .. name)
-                callback(true)
-            else
-                PulsarLib.Logging:Error("Failed to download module metadata for " .. name .. ": " .. code)
+
+    local function downloadData()
+        HTTP({
+            url = moduleDataURL,
+            method = "GET",
+            success = function(code, body, headers)
+                if code == 200 then
+                    file.Write("pulsarlib/modules/" .. name .. "/metadata.json", body)
+                    PulsarLib.Logging:Debug("Downloaded module metadata for '", logger:Highlight(name), "'")
+                    callback(true)
+                else
+                    PulsarLib.Logging:Error("Failed to download module metadata for '", logger:Highlight(name), "': '", logger:Highlight(code), "'")
+                    callback(false)
+                end
+            end,
+            failed = function(reason)
+                PulsarLib.Logging:Error("Failed to download module metadata for '", logger:Highlight(name), "': '", logger:Highlight(reason), "'")
                 callback(false)
             end
-        end,
-        failed = function(reason)
-            PulsarLib.Logging:Error("Failed to download module metadata for " .. name .. ": " .. reason)
-            callback(false)
-        end
-    })
+        })
+    end
+
+    if file.Exists("pulsarlib/modules/" .. name .. "/metadata.json", "DATA") then
+        http.Fetch(moduleDataURL, function(body, size, headers, code)
+            if code == 200 then
+                local oldMetadata = file.Read("pulsarlib/modules/" .. name .. "/metadata.json", "DATA")
+                if oldMetadata == body then
+                    PulsarLib.Logging:Debug("Module metadata for '", logger:Highlight(name), "' is up to date")
+                    callback(true)
+                    return
+                end
+
+                downloadData()
+            else
+                PulsarLib.Logging:Error("Failed to download module metadata for '", logger:Highlight(name), "': '", logger:Highlight(code), "'")
+                callback(false)
+            end
+        end)
+    end
 end
 
 function PulsarLib.Modules.GetModuleMetaData(name, callback)
@@ -199,7 +215,7 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
 
     PulsarLib.Modules.GetModuleMetaData(name, function(success, moduleMetaData)
         if not moduleMetaData then
-            PulsarLib.Logging:Error("Module " .. name .. " does not exist")
+            PulsarLib.Logging:Error("Module '", logger:Highlight(name), "' does not exist")
             return
         end
 
@@ -209,7 +225,7 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
 
         local versionsData = moduleMetaData.versions
         if not versionsData[version] then
-            PulsarLib.Logging:Error("Module " .. name .. " does not have version " .. version)
+            PulsarLib.Logging:Error("Module '", logger:Highlight(name), "' does not have version '", logger:Highlight(version), "'")
             return
         end
 
@@ -228,7 +244,7 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
         local gmaPath = "pulsarlib/modules/" .. name .. "/versions/" .. version .. "/" .. gmaName
 
         if file.Exists(gmaPath, "DATA") then
-            PulsarLib.Logging:Debug("Module " .. name .. " version " .. version .. " already exists")
+            PulsarLib.Logging:Debug("Module '", logger:Highlight(name), "' version '", logger:Highlight(version), "' already exists")
             callback(true)
             return
         end
@@ -239,15 +255,15 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
             success = function(code, body, headers)
                 if code == 200 then
                     file.Write(gmaPath, body)
-                    PulsarLib.Logging:Debug("Downloaded module " .. name .. " version " .. version)
+                    PulsarLib.Logging:Debug("Downloaded module '", logger:Highlight(name), "' version '", logger:Highlight(version), "'")
                     callback(true)
                 else
-                    PulsarLib.Logging:Error("Failed to download module " .. name .. " version " .. version .. ": " .. code)
+                    PulsarLib.Logging:Error("Failed to download module '", logger:Highlight(name), "' version '", logger:Highlight(version), "': '", logger:Highlight(code), "'")
                     callback(false)
                 end
             end,
             failed = function(reason)
-                PulsarLib.Logging:Error("Failed to download module " .. name .. " version " .. version .. ": " .. reason)
+                PulsarLib.Logging:Error("Failed to download module '", logger:Highlight(name), "' version '", logger:Highlight(version), "': '", logger:Highlight(reason), "'")
                 callback(false)
             end
         })
