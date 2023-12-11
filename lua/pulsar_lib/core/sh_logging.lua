@@ -163,21 +163,21 @@ end
 local logger = {}
 logger.__index = logger
 
-function logger:New(name)
+function logger:New(name, loggingMeta)
 	local log = setmetatable({
 		name = name,
-		level = name == "" and logging.Levels.DEFAULT or nil
+		level = name == "" and loggingMeta.Levels.DEFAULT or nil
 	}, self)
 
-	log.Trace1 = logging:Build(name, "TRACE1")
-	log.Trace2 = logging:Build(name, "TRACE2")
-	log.Trace3 = logging:Build(name, "TRACE3")
-	log.Debug = logging:Build(name, "DEBUG")
-	log.Info = logging:Build(name, "INFO")
-	log.Warning = logging:Build(name, "WARNING")
-	log.Error = logging:Build(name, "ERROR")
-	log.Critical = logging:Build(name, "CRITICAL")
-	log.Fatal = logging:Build(name, "FATAL")
+	log.Trace1 = loggingMeta:Build(name, "TRACE1")
+	log.Trace2 = loggingMeta:Build(name, "TRACE2")
+	log.Trace3 = loggingMeta:Build(name, "TRACE3")
+	log.Debug = loggingMeta:Build(name, "DEBUG")
+	log.Info = loggingMeta:Build(name, "INFO")
+	log.Warning = loggingMeta:Build(name, "WARNING")
+	log.Error = loggingMeta:Build(name, "ERROR")
+	log.Critical = loggingMeta:Build(name, "CRITICAL")
+	log.Fatal = loggingMeta:Build(name, "FATAL")
 
 	return log
 end
@@ -250,7 +250,7 @@ end
 function logging:GetLogger(name)
 	local key = name:lower()
 	if not self.stored[key] then
-		self.stored[key] = logger:New(name)
+		self.stored[key] = logger:New(name, self)
 	end
 
 	return self.stored[key]

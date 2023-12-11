@@ -141,18 +141,19 @@ function AddonHandler:Load()
 
 	self.GlobalVar.PulsarLibAddon = self
 	self.GlobalVar.Logging = table.Copy(PulsarLib.Logging)
+	self.GlobalVar.Logging.Functional = PulsarLib.Functional
 	self.GlobalVar.Logging.stored = {}
 
 	self.GlobalVar.Logging = setmetatable(self.GlobalVar.Logging, {
 		__index = self.GlobalVar
 	})
 
-	self.GlobalVar.Logging:Get("Loader")
 
 	if self.Phrases then
 		self.GlobalVar.Logging.stored = {}
 		self.GlobalVar.Logging.Phrases = self.Phrases
 		self.GlobalVar.Logging:GetLogger("")
+		self.GlobalVar.Logging:Get("Loader")
 	end
 
 	self.GlobalVar.Language = table.Copy(PulsarLib.Language)
