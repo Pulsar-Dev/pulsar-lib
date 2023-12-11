@@ -141,13 +141,13 @@ function AddonHandler:Load()
 
 	self.GlobalVar.PulsarLibAddon = self
 	self.GlobalVar.Logging = table.Copy(PulsarLib.Logging)
-	self.GlobalVar.Logging.Functional = PulsarLib.Functional
+	self.GlobalVar.Functional = PulsarLib.Functional
+
 	self.GlobalVar.Logging.stored = {}
 
 	self.GlobalVar.Logging = setmetatable(self.GlobalVar.Logging, {
 		__index = self.GlobalVar
 	})
-
 
 	if self.Phrases then
 		self.GlobalVar.Logging.stored = {}
@@ -263,6 +263,7 @@ function AddonHandler:Load()
 
 	if not istable(self.Dependencies) or (table.Count(self.Dependencies) == 0) then
 		loadable = true
+		PulsarLib.Logging:Debug("Addon " .. self.name .. " has no dependencies. Continuing load.")
 	else
 		local totalDependencies = table.Count(self.Dependencies)
 		local loadedCount = 0

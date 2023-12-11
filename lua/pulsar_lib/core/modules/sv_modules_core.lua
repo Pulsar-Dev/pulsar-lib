@@ -1,6 +1,5 @@
 PulsarLib.Modules = PulsarLib.Modules or {}
 PulsarLib.Modules.Loaded = PulsarLib.Modules.Loaded or {}
-PulsarLib.Modules.Allowed = PulsarLib.Modules.Allowed or {}
 
 file.CreateDir("pulsarlib/modules")
 
@@ -158,5 +157,3 @@ hook.Add("Think", "PulsarLib.Modules.DownloadMetadata", function()
 
 	PulsarLib.Modules.DownloadMetadata()
 end)
-
-PulsarLib.Modules.LoadModule("updatr", "0.0.1", print)
