@@ -68,4 +68,4 @@ function PulsarLib:IncludeDirRecursive(path, state, full)
 	end
 end
 
-PulsarLib:Include("sh_init") 
+PulsarLib:Include("sh_init")

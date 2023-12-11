@@ -1,16 +1,22 @@
 PulsarLib = PulsarLib or {}
+
 PulsarLib.Addons = PulsarLib.Addons or setmetatable({
 	stored = {}
-}, {__index = PulsarLib})
+}, {
+	__index = PulsarLib
+})
 
 PulsarLib.Addons.WaitingForDeps = PulsarLib.Addons.WaitingForDeps or {}
+PulsarLib.Addons.WaitingForLoad = PulsarLib.Addons.WaitingForLoad or {}
 PulsarLib.Addons.Registered = PulsarLib.Addons.Registered or {}
 local loaders = {}
 
 loaders.Include = function(self, path, state, full)
 	self = self.PulsarLibAddon
+
 	if not full then
 		path = self.Folder .. "/" .. path
+
 		if not path:EndsWith(".lua") then
 			path = path .. ".lua"
 		end
@@ -25,9 +31,7 @@ loaders.Include = function(self, path, state, full)
 
 	if prefix ~= "sv" then
 		AddCSLuaFile(path)
-		if CLIENT or prefix == "sh" then
-			return include(path)
-		end
+		if CLIENT or prefix == "sh" then return include(path) end
 	elseif SERVER then
 		return include(path)
 	end
@@ -35,6 +39,7 @@ end
 
 loaders.IncludeDir = function(self, path, state)
 	path = self.PulsarLibAddon.Folder .. "/" .. path
+
 	if not path:EndsWith("/") then
 		path = path .. "/"
 	end
@@ -46,6 +51,7 @@ loaders.IncludeDir = function(self, path, state)
 	end
 
 	local files = file.Find(path .. "*", "LUA")
+
 	for _, name in ipairs(files) do
 		self:Include(path .. name, state, true)
 	end
@@ -55,6 +61,7 @@ loaders.IncludeDirRecursive = function(self, path, state, full)
 	if not full then
 		path = self.PulsarLibAddon.Folder .. "/" .. path
 	end
+
 	if not path:EndsWith("/") then
 		path = path .. "/"
 	end
@@ -62,21 +69,21 @@ loaders.IncludeDirRecursive = function(self, path, state, full)
 	local logger = self.GlobalVar and self.GlobalVar.Logging:Get("Loader")
 
 	if logger then
-
 		logger:Debug("Recursive Include of: '", logger:Highlight(path), "'")
 	end
 
 	local files, folders = file.Find(path .. "*", "LUA")
+
 	for _, name in ipairs(files) do
 		self:Include(path .. name, state, true)
 	end
+
 	for _, name in ipairs(folders) do
 		self:IncludeDirRecursive(path .. name, state, true)
 	end
 end
 
 local addons = PulsarLib.Addons
-
 local AddonHandler = {}
 
 function AddonHandler.Create(name)
@@ -91,46 +98,55 @@ end
 
 function AddonHandler:SetFolder(dir)
 	self.Folder = dir
+
 	return self
 end
 
 function AddonHandler:SetGlobalVar(var)
 	self.GlobalVar = var
+
 	return self
 end
 
-
 function AddonHandler:SetPhrases(phrases)
 	self.Phrases = phrases
+
 	return self
 end
 
 function AddonHandler:SetOnLoad(func)
 	self.OnLoad = func
+
 	return self
 end
 
 function AddonHandler:SetDependencies(deps)
 	self.Dependencies = deps
+
 	return self
 end
 
 function AddonHandler:SetRequiredVars(requiredVars)
 	self.RequiredVars = requiredVars
+
 	return self
 end
 
 function AddonHandler:Load()
 	if not self.GlobalVar then
 		PulsarLib.Logging:Error("Addon " .. self.name .. " has no global var")
+
 		return
 	end
 
 	self.GlobalVar.PulsarLibAddon = self
-
 	self.GlobalVar.Logging = table.Copy(PulsarLib.Logging)
 	self.GlobalVar.Logging.stored = {}
-	self.GlobalVar.Logging = setmetatable(self.GlobalVar.Logging, {__index = self.GlobalVar})
+
+	self.GlobalVar.Logging = setmetatable(self.GlobalVar.Logging, {
+		__index = self.GlobalVar
+	})
+
 	self.GlobalVar.Logging:Get("Loader")
 
 	if self.Phrases then
@@ -144,30 +160,26 @@ function AddonHandler:Load()
 	self.GlobalVar.Language.stored = {}
 	self.GlobalVar.Language.plurals = {}
 	self.GlobalVar.Language:Load()
-
 	self.GlobalVar.Include = loaders.Include
 	self.GlobalVar.IncludeDir = loaders.IncludeDir
 	self.GlobalVar.IncludeDirRecursive = loaders.IncludeDirRecursive
-
 	local logger_command_name = self.name:lower():gsub("[%s]", "")
 
 	concommand.Add(logger_command_name .. "_logging_setserverlevel", function(ply, _, args)
-		if CLIENT then
-			return
-		end
+		if CLIENT then return end
 
 		local function output(...)
 			self.GlobalVar.Logging:Root():Info(true, ...)
 		end
+
 		if IsValid(ply) then
-			if not ply:IsSuperAdmin() then
-				return ply:ChatPrint("You are not authorised to set the server logging level!")
-			end
+			if not ply:IsSuperAdmin() then return ply:ChatPrint("You are not authorized to set the server logging level!") end
 
 			-- Overwrite our local print function.
 			-- To pass all our output to the calling client.
 			function output(...)
 				local out = self.GlobalVar.Logging.flatten({...})
+
 				for i = 1, #out do
 					if out[i] and IsColor(out[i]) then
 						table.remove(out, i)
@@ -179,6 +191,7 @@ function AddonHandler:Load()
 		end
 
 		local cnt = #args
+
 		if cnt == 0 or cnt > 2 then
 			output(string.format("USAGE: %s [<logger>] <level>", logger_command_name .. "_logging_setserverlevel"))
 			output("logger: Optional name of the logger, as seen in your console.")
@@ -191,20 +204,18 @@ function AddonHandler:Load()
 			output("Any child loggers not explicitly set will also inherit this level.")
 			output("Ie. Setting a logger to NONE will disallow all messages.")
 			output("Ie. Setting a logger to ERROR will allow ERROR, CRITICAL and FATAL messages.")
+
 			return
 		end
 
-		if cnt == 1 then
-			return self.GlobalVar.Logging:Root():SetLevel(args[1]):Info(true, "Logging level set to '", args[1], "'")
-		end
-
-		if cnt == 2 then
-			return self.GlobalVar.Logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'")
-		end
+		if cnt == 1 then return self.GlobalVar.Logging:Root():SetLevel(args[1]):Info(true, "Logging level set to '", args[1], "'") end
+		if cnt == 2 then return self.GlobalVar.Logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'") end
 	end)
+
 	if CLIENT then
 		concommand.Add(logger_command_name .. "_logging_setclientlevel", function(_, _, args)
 			local cnt = #args
+
 			if cnt == 0 or cnt > 2 then
 				self.GlobalVar.Logging:Root():Info(true, string.format("USAGE: %s [<logger>] <level>", logger_command_name .. "_self.GlobalVar.Logging_setclientlevel"))
 				self.GlobalVar.Logging:Root():Info(true, "logger: Optional name of the logger, as seen in your console.")
@@ -217,68 +228,82 @@ function AddonHandler:Load()
 				self.GlobalVar.Logging:Root():Info(true, "Any child loggers not explicitly set will also inherit this level.")
 				self.GlobalVar.Logging:Root():Info(true, "Ie. Setting a logger to NONE will disallow all messages.")
 				self.GlobalVar.Logging:Root():Info(true, "Ie. Setting a logger to ERROR will allow ERROR, CRITICAL and FATAL messages.")
+
 				return
 			end
 
-			if cnt == 1 then
-				return self.GlobalVar.Logging:Root():SetLevel(args[1]):Info(true, "Logging level set to '", args[1], "'")
-			end
-
-			if cnt == 2 then
-				return self.GlobalVar.Logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'")
-			end
+			if cnt == 1 then return self.GlobalVar.Logging:Root():SetLevel(args[1]):Info(true, "Logging level set to '", args[1], "'") end
+			if cnt == 2 then return self.GlobalVar.Logging:GetLogger(args[1]):SetLevel(args[2]):Info(true, "Logging level set to '", args[2], "' for logger '", args[1], "'") end
 		end)
 	end
 
-
 	local loadable = false
+	local loadedDependencies = {}
+	local errorMsg = ""
+
+	local function loadAddon()
+		if not loadable then
+			PulsarLib.Logging:Error("Addon '" .. self.name .. "' has errored during load: " .. errorMsg)
+
+			return
+		end
+
+		PulsarLib.Logging:Info("Addon " .. self.name .. " was created and is now loading.")
+		PulsarLib.Addons.stored[self.name] = self
+
+		if self.Folder then
+			self.GlobalVar:Include(self.Folder .. "/sh_init.lua", "sh", true)
+
+			if self.OnLoad then
+				self:OnLoad()
+			end
+		end
+	end
 
 	if not istable(self.Dependencies) or (table.Count(self.Dependencies) == 0) then
 		loadable = true
 	else
-		loadable = true
+		local totalDependencies = table.Count(self.Dependencies)
+		local loadedCount = 0
 
-		for k, v in pairs(self.Dependencies) do
-			if not k or not PulsarLib.ModuleTable[k].Loaded then
-				PulsarLib.Logging:Debug("Addon " .. self.name .. " waiting for " .. k .. " to load")
-				loadable = false
-				PulsarLib.Addons.WaitingForDeps[self.name] = self
-				break
+		for dependency, version in pairs(self.Dependencies) do
+			if not dependency then
+				PulsarLib.Logging:Error("Addon " .. self.name .. " has a dependency with no name")
+
+				return
 			end
+
+			if not version then
+				PulsarLib.Logging:Error("Addon " .. self.name .. " has a dependency with no version")
+
+				return
+			end
+
+			loadedDependencies[dependency] = false
+			PulsarLib.Logging:Debug("Addon " .. self.name .. " is waiting for " .. dependency .. " to load")
+
+			PulsarLib.Modules.LoadModule(dependency, version, function(success)
+				if not success then
+					PulsarLib.Logging:Error("Addon " .. self.name .. " failed to load because " .. dependency .. " failed to load")
+					loadable = false
+
+					return
+				end
+
+				loadedDependencies[dependency] = true
+				loadedCount = loadedCount + 1
+
+				if loadedCount == totalDependencies then
+					loadable = true
+					PulsarLib.Logging:Debug("Addon " .. self.name .. " has loaded " .. loadedCount .. "/" .. totalDependencies .. " dependencies.")
+					loadAddon()
+				end
+			end)
 		end
 	end
 
-	if self.RequiredVars then
-		local allRequired = true
-		local failed = {}
-
-		for k, v in pairs(self.RequiredVars) do
-			if not PulsarLib.Dependency.VariableExists(v) then
-				allRequired = false
-				failed[#failed + 1] = v
-			end
-		end
-
-		if not allRequired then
-			loadable = false
-			for i = 1, 20 do
-				PulsarLib.Logging:Critical("Addon " .. self.name .. " is missing required variables: " .. table.concat(failed, ", ") .. ". Not loading.")
-			end
-			PulsarLib.Dependency.Failed.Addons[self.name] = {
-				Client = "PulsarLib Addon " .. self.name .. " has failed to load. Check server console for more information.",
-				Server = "Addon " .. self.name .. " is missing required variables: " .. table.concat(failed, ", ") .. ". Not loading."
-			}
-			return
-		end
-	end
-
-	PulsarLib.Logging:Info("Addon " .. self.name .. " was created and is ready to load.")
-
-	if self.Folder and loadable then
-		self.GlobalVar:Include(self.Folder .. "/sh_init.lua", "sh", true)
-		if self.OnLoad then
-			self:OnLoad()
-		end
+	if loadable then
+		loadAddon()
 	end
 
 	table.insert(PulsarLib.Addons.Registered, self.name)
