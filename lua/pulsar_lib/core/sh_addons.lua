@@ -142,7 +142,6 @@ function AddonHandler:Load()
 	self.GlobalVar.PulsarLibAddon = self
 	self.GlobalVar.Logging = table.Copy(PulsarLib.Logging)
 	self.GlobalVar.Functional = PulsarLib.Functional
-
 	self.GlobalVar.Logging.stored = {}
 
 	self.GlobalVar.Logging = setmetatable(self.GlobalVar.Logging, {
@@ -263,7 +262,6 @@ function AddonHandler:Load()
 
 	if not istable(self.Dependencies) or (table.Count(self.Dependencies) == 0) then
 		loadable = true
-		PulsarLib.Logging:Debug("Addon " .. self.name .. " has no dependencies. Continuing load.")
 	else
 		local totalDependencies = table.Count(self.Dependencies)
 		local loadedCount = 0
@@ -284,23 +282,43 @@ function AddonHandler:Load()
 			loadedDependencies[dependency] = false
 			PulsarLib.Logging:Debug("Addon " .. self.name .. " is waiting for " .. dependency .. " to load")
 
-			PulsarLib.Modules.LoadModule(dependency, version, function(success)
-				if not success then
-					PulsarLib.Logging:Error("Addon " .. self.name .. " failed to load because " .. dependency .. " failed to load")
-					loadable = false
+			if CLIENT then
+				PulsarLib.Modules.LoadModule(dependency, version, function(success)
+					if not success then
+						PulsarLib.Logging:Error("Addon " .. self.name .. " failed to load because " .. dependency .. " failed to load")
+						loadable = false
 
-					return
-				end
+						return
+					end
 
-				loadedDependencies[dependency] = true
-				loadedCount = loadedCount + 1
+					loadedDependencies[dependency] = true
+					loadedCount = loadedCount + 1
 
-				if loadedCount == totalDependencies then
-					loadable = true
-					PulsarLib.Logging:Debug("Addon " .. self.name .. " has loaded " .. loadedCount .. "/" .. totalDependencies .. " dependencies.")
-					loadAddon()
-				end
-			end)
+					if loadedCount == totalDependencies then
+						loadable = true
+						PulsarLib.Logging:Debug("Addon " .. self.name .. " has loaded " .. loadedCount .. "/" .. totalDependencies .. " dependencies.")
+						loadAddon()
+					end
+				end)
+			else
+				PulsarLib.Modules.LoadModule(dependency, version, function(success)
+					if not success then
+						PulsarLib.Logging:Error("Addon " .. self.name .. " failed to load because " .. dependency .. " failed to load")
+						loadable = false
+
+						return
+					end
+
+					loadedDependencies[dependency] = true
+					loadedCount = loadedCount + 1
+
+					if loadedCount == totalDependencies then
+						loadable = true
+						PulsarLib.Logging:Debug("Addon " .. self.name .. " has loaded " .. loadedCount .. "/" .. totalDependencies .. " dependencies.")
+						loadAddon()
+					end
+				end)
+			end
 		end
 	end
 

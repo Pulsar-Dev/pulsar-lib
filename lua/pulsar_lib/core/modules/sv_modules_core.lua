@@ -37,6 +37,36 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 		if file.IsDir("addons/" .. moduleFolder, "GAME") then
 			PulsarLib.Logging:Fatal("Module '", logger:Highlight(module), "' is already installed as an addon. You must remove it from the addons folder to continue loading the module correctly.")
 			PulsarLib.Logging:Fatal("If you are developing this module, you can ignore this warning.")
+
+			PulsarLib.Modules.GetLoadData(module, function(success, loadData)
+				if not success then
+					PulsarLib.Logging:Error("Unable to load dev module '", logger:Highlight(module), "' from addons folder. (unable to get load data)")
+					callback(false)
+					return
+				end
+
+				local loadHook = loadData.hook
+				local global = loadData.global
+
+				if _G[global] then
+					PulsarLib.Logging:Debug("Dev Module '", logger:Highlight(module), "' (version '", logger:Highlight(version), "') is already loaded")
+					callback(true)
+					return
+				end
+
+				PulsarLib.Logging:Debug("Waiting for dev module '", logger:Highlight(module), "' to load using hook '", logger:Highlight(loadHook), "'")
+
+				hook.Add(loadHook, "PulsarLib.Modules.LoadModule." .. module, function()
+					PulsarLib.Logging:Debug("Dev Module '", logger:Highlight(module), "' has loaded using hook '", logger:Highlight(loadHook), "'")
+
+					hook.Remove(loadHook, "PulsarLib.Modules.LoadModule." .. module)
+
+					PulsarLib.Modules.Loaded[module] = "DEV"
+
+					callback(true)
+				end)
+			end)
+
 			callback(true)
 			return
 		end
@@ -102,7 +132,14 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 							for _, autorunFile in ipairs(mountedFiles) do
 								if string.StartWith(autorunFile, "lua/autorun/") and string.EndsWith(autorunFile, ".lua") then
 									autorunFile = string.sub(autorunFile, 5)
-									include(autorunFile)
+									if string.StartWith(autorunFile, "lua/autorun/server/") then
+										include(autorunFile)
+									elseif string.StartWith(autorunFile, "lua/autorun/client/") then
+										AddCSLuaFile(autorunFile)
+									else
+										include(autorunFile)
+										AddCSLuaFile(autorunFile)
+									end
 								end
 							end
 						end

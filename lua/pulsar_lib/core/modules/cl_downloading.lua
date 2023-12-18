@@ -95,7 +95,7 @@ function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
         })
     end
 
-    if file.Exists("pulsarlib/modules/" .. name .. "/metadata.json", "DATA") then
+    if not file.Exists("pulsarlib/modules/" .. name .. "/metadata.json", "DATA") then
         http.Fetch(moduleDataURL, function(body, size, headers, code)
             if code == 200 then
                 local oldMetadata = file.Read("pulsarlib/modules/" .. name .. "/metadata.json", "DATA")
@@ -111,6 +111,8 @@ function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
                 callback(false)
             end
         end)
+    else
+        callback(true)
     end
 end
 
@@ -138,139 +140,6 @@ function PulsarLib.Modules.ModuleExists(name, callback)
         end
 
         callback(true, moduleMetaData)
-    end)
-end
-
-function PulsarLib.Modules.GetVersionsData(name, callback)
-    callback = callback or emptyFunc
-
-    PulsarLib.Modules.GetModuleMetaData(name, function(success, moduleMetaData)
-        if not success then
-            callback(false)
-            return
-        end
-
-        if not moduleMetaData then
-            callback(false)
-            return
-        end
-
-        callback(true, moduleMetaData.versions)
-    end)
-
-end
-
-function PulsarLib.Modules.GetLatestVersion(name, callback)
-    callback = callback or emptyFunc
-
-    PulsarLib.Modules.GetModuleMetaData(name, function(success, moduleMetaData)
-        if not success then
-            callback(false)
-            return
-        end
-
-        if not moduleMetaData then
-            callback(false)
-            return
-        end
-
-        callback(true, moduleMetaData.latest)
-    end)
-end
-
-function PulsarLib.Modules.GetVersionData(name, version, callback)
-    callback = callback or emptyFunc
-
-    PulsarLib.Modules.GetVersionsData(name, function(success, versionsData)
-        if not success then
-            callback(false)
-            return
-        end
-
-        if not versionsData or not versionsData[version] then
-            callback(false)
-            return
-        end
-
-        callback(true, versionsData[version])
-    end)
-end
-
-function PulsarLib.Modules.GetDependencies(name, version, callback)
-    callback = callback or emptyFunc
-
-    PulsarLib.Modules.GetVersionData(name, version, function(success, versionData)
-        if not success then
-            callback(false)
-            return
-        end
-
-        callback(true, versionData.dependencies)
-    end)
-end
-
-
-function PulsarLib.Modules.DownloadModule(name, version, callback)
-    callback = callback or emptyFunc
-
-    PulsarLib.Modules.GetModuleMetaData(name, function(success, moduleMetaData)
-        if not moduleMetaData then
-            PulsarLib.Logging:Error("Module '", logger:Highlight(name), "' does not exist")
-            return
-        end
-
-        if version == "latest" then
-            version = moduleMetaData.latest
-        end
-
-        local versionsData = moduleMetaData.versions
-        if not versionsData[version] then
-            PulsarLib.Logging:Error("Module '", logger:Highlight(name), "' does not have version '", logger:Highlight(version), "'")
-            return
-        end
-
-        if not file.IsDir("pulsarlib/modules/" .. name .. "/versions", "DATA") then
-            file.CreateDir("pulsarlib/modules/" .. name .. "/versions")
-        end
-
-        if not file.IsDir("pulsarlib/modules/" .. name .. "/versions/" .. version, "DATA") then
-            file.CreateDir("pulsarlib/modules/" .. name .. "/versions/" .. version)
-        end
-
-        local versionData = versionsData[version]
-        local gmaDownloadURL = versionData.file
-
-        if not gmaDownloadURL:match("^https?://") then
-            gmaDownloadURL = baseURL .. "/" .. name .. "" .. gmaDownloadURL
-        end
-
-        local gmaName = string.Split(gmaDownloadURL, "/")[#string.Split(gmaDownloadURL, "/")]
-        local gmaPath = "pulsarlib/modules/" .. name .. "/versions/" .. version .. "/" .. gmaName
-
-        if file.Exists(gmaPath, "DATA") then
-            PulsarLib.Logging:Debug("Module '", logger:Highlight(name), "' version '", logger:Highlight(version), "' already exists")
-            callback(true)
-            return
-        end
-
-        HTTP({
-            url = gmaDownloadURL,
-            method = "GET",
-            success = function(code, body, headers)
-                if code == 200 then
-                    file.Write(gmaPath, body)
-                    PulsarLib.Logging:Debug("Downloaded module '", logger:Highlight(name), "' version '", logger:Highlight(version), "'")
-                    callback(true)
-                else
-                    PulsarLib.Logging:Error("Failed to download module '", logger:Highlight(name), "' version '", logger:Highlight(version), "': '", logger:Highlight(code), "'")
-                    callback(false)
-                end
-            end,
-            failed = function(reason)
-                PulsarLib.Logging:Error("Failed to download module '", logger:Highlight(name), "' version '", logger:Highlight(version), "': '", logger:Highlight(reason), "'")
-                callback(false)
-            end
-        })
     end)
 end
 
