@@ -67,7 +67,6 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 				end)
 			end)
 
-			callback(true)
 			return
 		end
 
