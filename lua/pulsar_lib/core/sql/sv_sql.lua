@@ -44,11 +44,13 @@ function SQL:ConnectMySQL()
 	self.Connection.onConnected = function()
 		logger:Info("Successfully connected to mysql database")
 		hook.Run("PulsarLib.SQL.Connected")
+		PulsarLib.SQL.Connected = true
 	end
 
 	self.Connection.onConnectionFailed = function(_, err)
 		logger:Error("Failed to connect to mysql database: " .. err)
 		hook.Run("PulsarLib.SQL.ConnectionFailed")
+		PulsarLib.SQL.Connected = false
 	end
 
 	self.Connection:connect()
@@ -56,6 +58,11 @@ end
 
 function SQL:ConnectSQLite()
 	hook.Run("PulsarLib.SQL.Connected")
+	PulsarLib.SQL.Connected = true
+end
+
+function SQL:IsConnected()
+	return PulsarLib.SQL.Connected == true
 end
 
 function SQL:Connect()
