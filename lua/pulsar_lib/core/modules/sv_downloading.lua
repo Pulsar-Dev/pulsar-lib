@@ -8,6 +8,12 @@ local logger = PulsarLib.Logging:Get("ModuleLoader")
 function PulsarLib.Modules.DownloadMetadata(callback)
     callback = callback or emptyFunc
 
+    if cookie.GetNumber("pulsarlib_last_metadata_download", 0) > os.time() - (60 * 30) then // 30 mins
+        PulsarLib.Logging:Debug("Using cached metadata as it is less than 30 minutes old")
+        callback(true)
+        return
+    end
+
     PulsarLib.Logging:Debug("Downloading global metadata")
     HTTP({
         url = baseURL .. "/metadata.json",
@@ -16,6 +22,7 @@ function PulsarLib.Modules.DownloadMetadata(callback)
             if code == 200 then
                 file.Write("pulsarlib/modules/metadata.json", body)
                 PulsarLib.Logging:Debug("Downloaded global metadata")
+                cookie.Set("pulsarlib_last_metadata_download", os.time())
                 callback(true)
             else
                 PulsarLib.Logging:Error("Failed to download metadata: '", logger:Highlight(code), "'")
@@ -74,6 +81,14 @@ function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
 
     local moduleDataURL = baseURL .. metadata[name] .. "/metadata.json"
 
+    local lastMetaTimesCookie = cookie.GetString("pulsarlib_last_meta_times", "{}")
+    local lastMetaTimes = util.JSONToTable(lastMetaTimesCookie)
+    if lastMetaTimes[name] and lastMetaTimes[name] > os.time() - (60 * 30) then // 30 mins
+        PulsarLib.Logging:Debug("Using cached module metadata for '", logger:Highlight(name), "' as it is less than 30 minutes old")
+        callback(true)
+        return
+    end
+
     local function downloadData()
         HTTP({
             url = moduleDataURL,
@@ -82,6 +97,13 @@ function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
                 if code == 200 then
                     file.Write("pulsarlib/modules/" .. name .. "/metadata.json", body)
                     PulsarLib.Logging:Debug("Downloaded module metadata for '", logger:Highlight(name), "'")
+
+                    lastMetaTimesCookie = cookie.GetString("pulsarlib_last_meta_times", "{}")
+                    lastMetaTimes = util.JSONToTable(lastMetaTimesCookie)
+                    lastMetaTimes[name] = os.time()
+
+                    cookie.Set("pulsarlib_last_meta_times", util.TableToJSON(lastMetaTimes))
+
                     callback(true)
                 else
                     PulsarLib.Logging:Error("Failed to download module metadata for '", logger:Highlight(name), "': '", logger:Highlight(code), "'")
