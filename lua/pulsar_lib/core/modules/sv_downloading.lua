@@ -1,18 +1,24 @@
 PulsarLib.Modules = PulsarLib.Modules or {}
+if not reqwest and not CHTTP then
+    local suffix = ({"osx64", "osx", "linux64", "linux", "win64", "win32"})[(system.IsWindows() and 4 or 0) + (system.IsLinux() and 2 or 0) + (jit.arch == "x86" and 1 or 0) + 1]
+    local fmt = "lua/bin/gm" .. (CLIENT and "cl" or "sv") .. "_%s_%s.dll"
+    local function installed(name)
+        if file.Exists(string.format(fmt, name, suffix), "GAME") then return true end
+        if jit.versionnum ~= 20004 and jit.arch == "x86" and system.IsLinux() then return file.Exists(string.format(fmt, name, "linux32"), "GAME") end
+        return false
+    end
 
+    if installed("reqwest") then require("reqwest") end
+    if not reqwest and installed("chttp") then require("chttp") end
+end
+
+local HTTP = reqwest or CHTTP or HTTP
 local baseURL = "https://raw.githubusercontent.com/Pulsar-Dev/pulsar-lib-modules/master"
-
 local emptyFunc = function() end
 local logger = PulsarLib.Logging:Get("ModuleLoader")
 
 function PulsarLib.Modules.DownloadMetadata(callback)
     callback = callback or emptyFunc
-
-    if (cookie.GetNumber("pulsarlib_last_metadata_download", 0) > os.time() - (60 * 30)) and file.Exists("pulsarlib/modules/metadata.json", "DATA") then // 30 mins
-        PulsarLib.Logging:Debug("Using cached global metadata as it is less than 30 minutes old")
-        callback(true)
-        return
-    end
 
     PulsarLib.Logging:Debug("Downloading global metadata")
     HTTP({
@@ -22,7 +28,7 @@ function PulsarLib.Modules.DownloadMetadata(callback)
             if code == 200 then
                 file.Write("pulsarlib/modules/metadata.json", body)
                 PulsarLib.Logging:Debug("Downloaded global metadata")
-                cookie.Set("pulsarlib_last_metadata_download", os.time())
+
                 callback(true)
             else
                 PulsarLib.Logging:Error("Failed to download metadata: '", logger:Highlight(code), "'")
@@ -38,7 +44,6 @@ end
 
 function PulsarLib.Modules.GetMetadata(callback)
     callback = callback or emptyFunc
-
     if not file.Exists("pulsarlib/modules/metadata.json", "DATA") then
         PulsarLib.Modules.DownloadMetadata(function(success)
             if not success then
@@ -53,22 +58,15 @@ function PulsarLib.Modules.GetMetadata(callback)
     end
 
     local metadata = file.Read("pulsarlib/modules/metadata.json", "DATA")
-    if not metadata then
-        return {}
-    end
-
+    if not metadata then return {} end
     metadata = util.JSONToTable(metadata)
-
     callback(true, metadata)
     return metadata
 end
 
-
 function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
     callback = callback or emptyFunc
-
     local metadata = PulsarLib.Modules.GetMetadata()
-
     if not metadata[name] then
         PulsarLib.Logging:Error("Module '", logger:Highlight(name), "' does not exist")
         callback(false)
@@ -78,54 +76,24 @@ function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
     if not file.IsDir("pulsarlib/modules/" .. name, "DATA") then
         file.CreateDir("pulsarlib/modules/" .. name)
     end
-
     local moduleDataURL = baseURL .. metadata[name] .. "/metadata.json"
-
     local lastMetaTimesCookie = cookie.GetString("pulsarlib_last_meta_times", "{}")
     local lastMetaTimes = util.JSONToTable(lastMetaTimesCookie)
-    if (lastMetaTimes[name] and lastMetaTimes[name] > os.time() - (60 * 30)) and file.Exists("pulsarlib/modules/" .. name .. "/metadata.json", "DATA") then // 30 mins
-        PulsarLib.Logging:Debug("Using cached module metadata for '", logger:Highlight(name), "' as it is less than 30 minutes old")
+    if (lastMetaTimes[name] and lastMetaTimes[name] > os.time() - (60 * 5)) and file.Exists("pulsarlib/modules/" .. name .. "/metadata.json", "DATA") then -- 5 mins
+        PulsarLib.Logging:Debug("Using cached module metadata for '", logger:Highlight(name), "' as it is less than 5 minutes old")
         callback(true)
         return
     end
 
-    local function downloadData()
-        HTTP({
-            url = moduleDataURL,
-            method = "GET",
-            success = function(code, body, headers)
-                if code == 200 then
-                    file.Write("pulsarlib/modules/" .. name .. "/metadata.json", body)
-                    PulsarLib.Logging:Debug("Downloaded module metadata for '", logger:Highlight(name), "'")
-
-                    lastMetaTimesCookie = cookie.GetString("pulsarlib_last_meta_times", "{}")
-                    lastMetaTimes = util.JSONToTable(lastMetaTimesCookie)
-                    lastMetaTimes[name] = os.time()
-
-                    cookie.Set("pulsarlib_last_meta_times", util.TableToJSON(lastMetaTimes))
-
-                    callback(true)
-                else
-                    PulsarLib.Logging:Error("Failed to download module metadata for '", logger:Highlight(name), "': '", logger:Highlight(code), "'")
-                    callback(false)
-                end
-            end,
-            failed = function(reason)
-                PulsarLib.Logging:Error("Failed to download module metadata for '", logger:Highlight(name), "': '", logger:Highlight(reason), "'")
-                callback(false)
-            end
-        })
-    end
-
     http.Fetch(moduleDataURL, function(body, size, headers, code)
         if code == 200 then
-            local oldMetadata = file.Read("pulsarlib/modules/" .. name .. "/metadata.json", "DATA")
-            if oldMetadata == body then
-                PulsarLib.Logging:Debug("Module metadata for '", logger:Highlight(name), "' is up to date")
-                callback(true)
-                    return
-            end
-             downloadData()
+            file.Write("pulsarlib/modules/" .. name .. "/metadata.json", body)
+            PulsarLib.Logging:Debug("Downloaded module metadata for '", logger:Highlight(name), "'")
+            lastMetaTimesCookie = cookie.GetString("pulsarlib_last_meta_times", "{}")
+            lastMetaTimes = util.JSONToTable(lastMetaTimesCookie)
+            lastMetaTimes[name] = os.time()
+            cookie.Set("pulsarlib_last_meta_times", util.TableToJSON(lastMetaTimes))
+            callback(true)
         else
             PulsarLib.Logging:Error("Failed to download module metadata for '", logger:Highlight(name), "': '", logger:Highlight(code), "'")
             callback(false)
@@ -135,7 +103,6 @@ end
 
 function PulsarLib.Modules.GetModuleMetaData(name, callback)
     callback = callback or emptyFunc
-
 
     PulsarLib.Modules.DownloadModuleMetaData(name, function(success)
         if not success then
@@ -177,7 +144,6 @@ function PulsarLib.Modules.GetVersionsData(name, callback)
 
         callback(true, moduleMetaData.versions)
     end)
-
 end
 
 function PulsarLib.Modules.GetLatestVersion(name, callback)
@@ -229,7 +195,6 @@ function PulsarLib.Modules.GetDependencies(name, version, callback)
     end)
 end
 
-
 function PulsarLib.Modules.DownloadModule(name, version, callback)
     callback = callback or emptyFunc
 
@@ -239,10 +204,7 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
             return
         end
 
-        if version == "latest" then
-            version = moduleMetaData.latest
-        end
-
+        if version == "latest" then version = moduleMetaData.latest end
         local versionsData = moduleMetaData.versions
         if not versionsData[version] then
             PulsarLib.Logging:Error("Module '", logger:Highlight(name), "' does not have version '", logger:Highlight(version), "'")
