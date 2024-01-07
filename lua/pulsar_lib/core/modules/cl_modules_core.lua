@@ -11,26 +11,26 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 	local logger = PulsarLib.Logging:Get("ModuleLoader")
 
 	if not module then
-		PulsarLib.Logging:Error("Unable to load module '", logger:Highlight(module), "' (no module specified)")
+		logger:Error("Unable to load module '", logger:Highlight(module), "' (no module specified)")
 		callback(false)
 		return nil
 	end
 
 	if not version then
-		PulsarLib.Logging:Error("Unable to load module '", logger:Highlight(module), "' (no version specified)")
+		logger:Error("Unable to load module '", logger:Highlight(module), "' (no version specified)")
 		callback(false)
 		return nil
 	end
 
 	if PulsarLib.Modules.Loaded[module] then
-		PulsarLib.Logging:Error("Unable to load module '", logger:Highlight(module), "' (module already loaded)")
+		logger:Error("Unable to load module '", logger:Highlight(module), "' (module already loaded)")
 		callback(true)
 		return nil
 	end
 
 	PulsarLib.Modules.GetLoadData(module, function(success, loadData)
 		if not success then
-			PulsarLib.Logging:Error("Unable to load module '", logger:Highlight(module), "' (unable to get load data)")
+			logger:Error("Unable to load module '", logger:Highlight(module), "' (unable to get load data)")
 			callback(false)
 			return nil
 		end
@@ -39,15 +39,15 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 		local globalVar = loadData.global
 
 		if _G[globalVar] then
-			PulsarLib.Logging:Debug("Module '", logger:Highlight(module), "' is already loaded")
+			logger:Debug("Module '", logger:Highlight(module), "' is already loaded")
 			callback(true)
 			return nil
 		end
 
-		PulsarLib.Logging:Debug("Waiting for module '", logger:Highlight(module), "' to load using hook '", logger:Highlight(loadHook), "'")
+		logger:Debug("Waiting for module '", logger:Highlight(module), "' to load using hook '", logger:Highlight(loadHook), "'")
 
 		hook.Add(loadHook, "PulsarLib.Modules.LoadModule." .. module, function()
-			PulsarLib.Logging:Debug("Module '", logger:Highlight(module), "' has loaded")
+			logger:Debug("Module '", logger:Highlight(module), "' has loaded")
 
 			hook.Remove(loadHook, "PulsarLib.Modules.LoadModule." .. module)
 
