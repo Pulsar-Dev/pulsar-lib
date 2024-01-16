@@ -10,6 +10,16 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 
 	local logger = PulsarLib.Logging:Get("ModuleLoader")
 
+	if not PulsarLib.Modules.AddonsReadyToLoad then
+		logger:Debug("Waiting for addons to be ready to load")
+		hook.Add("PulsarLib.Modules.AddonsReadyToLoad", "PulsarLib.Modules.LoadModule." .. module, function()
+			logger:Debug("Addons are ready to load")
+			hook.Remove("PulsarLib.Modules.AddonsReadyToLoad", "PulsarLib.Modules.LoadModule." .. module)
+			PulsarLib.Modules.LoadModule(module, version, callback)
+		end)
+		return
+	end
+
 
 	if not module then
 		logger:Error("Unable to load module '", logger:Highlight(module), "' (no module specified)")
@@ -119,7 +129,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 
 					local function loadMainModule()
 						local modulePath = "pulsarlib/modules/" .. module .. "/versions/" .. version .. "/"
-						local gmaPath = "data/" .. modulePath .. module .. ".gma"
+						local gmaPath = "data/" .. modulePath .. module .. ".gma.txt"
 
 						PulsarLib.Modules.DownloadModule(module, version, function(downloadSuccess)
 							if not downloadSuccess then
@@ -201,4 +211,6 @@ hook.Add("Think", "PulsarLib.Modules.DownloadMetadata", function()
 	end)
 
 	PulsarLib.Modules.DownloadMetadata()
+	PulsarLib.Modules.AddonsReadyToLoad = true
+	hook.Run("PulsarLib.Modules.AddonsReadyToLoad")
 end)
