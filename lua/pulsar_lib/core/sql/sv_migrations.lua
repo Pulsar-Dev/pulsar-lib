@@ -59,8 +59,6 @@ function PulsarLib.SQL.Migrations:Run(callback)
 		end
 	end
 
-	PrintTable(self.queue)
-
 	self:Next()
 
 	if callback then
