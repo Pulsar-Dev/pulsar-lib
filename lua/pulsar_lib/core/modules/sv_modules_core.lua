@@ -23,6 +23,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 
 	if not module then
 		logger:Error("Unable to load module '", logger:Highlight(module), "' (no module specified)")
+		hook.Run("PulsarLib.Module.FailedLoad", module, "no module specified")
 		callback(false)
 		return nil
 	end
@@ -30,12 +31,21 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 	if not version then
 		logger:Error("Unable to load module '", logger:Highlight(module), "' (no version specified)")
 		callback(false)
+		hook.Run("PulsarLib.Module.FailedLoad", module, "no version specified")
 		return nil
+	end
+
+	if PulsarLib.Modules.Loaded[module] == version or PulsarLib.Modules.Loaded[module] == "DEV" then
+		logger:Debug("Module '", logger:Highlight(module), "' (version '", logger:Highlight(version), "') is already loaded")
+		hook.Run("PulsarLib.Module.Loaded", module, version)
+		callback(true)
+		return
 	end
 
 	PulsarLib.Modules.DownloadMetadata(function(mainMetaSuccess)
 		if not mainMetaSuccess then
 			logger:Error("Unable to load module '", logger:Highlight(module), "' (unable to download metadata)")
+			hook.Run("PulsarLib.Module.FailedLoad", module, "unable to download metadata")
 			callback(false)
 			return
 		end
@@ -43,6 +53,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 		PulsarLib.Modules.ModuleExists(module, function(exists, moduleMetaData)
 			if not exists then
 				logger:Error("Unable to load module '", logger:Highlight(module), "' (module does not exist)")
+				hook.Run("PulsarLib.Module.FailedLoad", module, "module does not exist")
 				callback(false)
 				return
 			end
@@ -60,6 +71,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 					if not success then
 						logger:Error("Unable to load dev module '", logger:Highlight(module), "' from addons folder. (unable to get load data)")
 						callback(false)
+						hook.Run("PulsarLib.Module.FailedLoad", module, "unable to get dev load data")
 						return
 					end
 
@@ -69,6 +81,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 					if _G[global] then
 						logger:Debug("Dev Module '", logger:Highlight(module), "' (version '", logger:Highlight(version), "') is already loaded")
 						callback(true)
+						hook.Run("PulsarLib.Module.Loaded", module, version)
 						return
 					end
 
@@ -80,6 +93,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 						hook.Remove(loadHook, "PulsarLib.Modules.LoadModule." .. module)
 
 						PulsarLib.Modules.Loaded[module] = "DEV"
+						hook.Run("PulsarLib.Module.Loaded", module, version)
 
 						callback(true)
 					end)
@@ -101,6 +115,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 
 				if not version then
 					logger:Error("Unable to load module '", logger:Highlight(module), "' (no version specified)")
+					hook.Run("PulsarLib.Module.FailedLoad", module, "no version specified")
 					callback(false)
 					return
 				end
@@ -108,10 +123,12 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 				if PulsarLib.Modules.Loaded[module] then
 					if PulsarLib.Modules.Loaded[module] == version then
 						logger:Debug("Module '", logger:Highlight(module), "' (version '", logger:Highlight(version), "') is already loaded")
+						hook.Run("PulsarLib.Module.Loaded", module, version)
 						callback(true)
 						return
 					elseif PulsarLib.Modules.Loaded[module] > version then
 						logger:Error("Unable to load module '", logger:Highlight(module), "' (version '", logger:Highlight(version), "' is older than the currently loaded version) Please contact support.")
+						hook.Run("PulsarLib.Module.FailedLoad", module, "version is older than the currently loaded version")
 						callback(false)
 						return
 					end
@@ -120,6 +137,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 				PulsarLib.Modules.GetDependencies(module, version, function(dependenciesSuccess, dependencies)
 					if not dependenciesSuccess then
 						logger:Error("Unable to load module '", logger:Highlight(module), "' (unable to get dependencies)")
+						hook.Run("PulsarLib.Module.FailedLoad", module, "unable to get dependencies")
 						callback(false)
 						return
 					end
@@ -134,6 +152,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 						PulsarLib.Modules.DownloadModule(module, version, function(downloadSuccess)
 							if not downloadSuccess then
 								logger:Error("Unable to load module '", logger:Highlight(module), "' (unable to download module)")
+								hook.Run("PulsarLib.Module.FailedLoad", module, "unable to download module")
 								callback(false)
 								return
 							end
@@ -141,6 +160,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 							local mountSuccess, mountedFiles = game.MountGMA(gmaPath)
 							if not mountSuccess then
 								logger:Error("Unable to load module '", logger:Highlight(module), "' (unable to mount GMA)")
+								hook.Run("PulsarLib.Module.FailedLoad", module, "unable to mount GMA")
 								callback(false)
 								return
 							end
@@ -162,6 +182,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 							end
 
 							logger:Debug("Loaded module '", logger:Highlight(module), "' (version '", logger:Highlight(version), "')")
+							hook.Run("PulsarLib.Module.Loaded", module, version)
 
 							for k, v in pairs(mountedFiles) do
 								logger:Debug("Mounted file '", logger:Highlight(v), "'")
@@ -178,6 +199,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 								PulsarLib.Modules.LoadModule(dependency, dependencyVersion, function(loadModuleSuccess)
 									if not loadModuleSuccess then
 										PulsarLib.Logging:Error("Unable to load module '", logger:Highlight(module), "' (unable to load dependency '", logger:Highlight(dependency), "')")
+										hook.Run("PulsarLib.Module.FailedLoad", module, "unable to load dependency")
 										callback(false)
 										return
 									end

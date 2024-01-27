@@ -22,18 +22,21 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 
 	if not module then
 		logger:Error("Unable to load module '", logger:Highlight(module), "' (no module specified)")
+		hook.Run("PulsarLib.Module.FailedLoad", module, "no module specified")
 		callback(false)
 		return nil
 	end
 
 	if not version then
 		logger:Error("Unable to load module '", logger:Highlight(module), "' (no version specified)")
+		hook.Run("PulsarLib.Module.FailedLoad", module, "no version specified")
 		callback(false)
 		return nil
 	end
 
-	if PulsarLib.Modules.Loaded[module] then
+	if PulsarLib.Modules.Loaded[module] == version or PulsarLib.Modules.Loaded[module] == "DEV" then
 		logger:Error("Unable to load module '", logger:Highlight(module), "' (module already loaded)")
+		hook.Run("PulsarLib.Module.Loaded", module, version)
 		callback(true)
 		return nil
 	end
@@ -41,6 +44,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 	PulsarLib.Modules.GetLoadData(module, function(success, loadData)
 		if not success then
 			logger:Error("Unable to load module '", logger:Highlight(module), "' (unable to get load data)")
+			hook.Run("PulsarLib.Module.FailedLoad", module, "unable to get load data")
 			callback(false)
 			return nil
 		end
@@ -50,6 +54,8 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 
 		if _G[globalVar] then
 			logger:Debug("Module '", logger:Highlight(module), "' is already loaded")
+			PulsarLib.Modules.Loaded[module] = true
+			hook.Run("PulsarLib.Module.Loaded", module, version)
 			callback(true)
 			return nil
 		end
@@ -62,6 +68,8 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 			hook.Remove(loadHook, "PulsarLib.Modules.LoadModule." .. module)
 
 			PulsarLib.Modules.Loaded[module] = true
+
+			hook.Run("PulsarLib.Module.Loaded", module, version)
 
 			callback(true)
 		end)
