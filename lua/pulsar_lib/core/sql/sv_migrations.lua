@@ -103,7 +103,7 @@ local function createTable()
 end
 
 hook.Add("PulsarLib.SQL.Connected", "PulsarLib.RunMigrations", function()
-	return createTable()
+	createTable()
 end)
 
 if PulsarLib.SQL:IsConnected() then
