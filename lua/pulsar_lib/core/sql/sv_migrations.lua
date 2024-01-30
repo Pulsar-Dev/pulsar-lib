@@ -87,10 +87,10 @@ end
 function PulsarLib.SQL.Migrations:RunAll()
 	self.Logging:Debug("Running migrations for addon " .. self.parent.name)
 
-	local canRun = hook.Run("PulsarLib.SQL.Migrations.Start", self.parent.name)
+	local canRun, reason = hook.Run("PulsarLib.SQL.Migrations.Start", self.parent.name)
 
 	if not canRun then
-		self.Logging:Warning("Migrations for addon " .. self.parent.name .. " were cancelled")
+		self.Logging:Warning("Migrations for addon " .. self.parent.name .. " were cancelled" .. (reason and ": " .. reason or ""))
 		return
 	end
 
