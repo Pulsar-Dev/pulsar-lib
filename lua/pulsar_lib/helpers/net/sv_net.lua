@@ -86,7 +86,7 @@ end
 for k, v in pairs(types) do
     NetHandler["Write" .. v] = function(self, data, extras)
         table.insert(self.data, {
-            type = k,
+            type = v,
             data = data,
             extras = extras
         })
@@ -100,11 +100,11 @@ function NetHandler:Send(ply)
 
     for k, v in ipairs(self.data) do
         if v.extras then
-            net[types[v.type]](v.data, v.extras)
+            net["Write" .. v.type](v.data, v.extras)
             continue
         end
 
-        net[types[v.type]](v.data)
+        net["Write" .. v.type](v.data)
     end
 
     net.Send(ply)
@@ -115,11 +115,11 @@ function NetHandler:Broadcast()
 
     for k, v in ipairs(self.extras) do
         if v.extras then
-            net[types[v.type]](v.data, v.extras)
+            net["Write" .. v.type](v.data, v.extras)
             continue
         end
 
-        net[types[v.type]](v.data)
+        net["Write" .. v.type](v.data)
     end
 
     net.Broadcast()

@@ -51,7 +51,7 @@ end
 for k, v in pairs(types) do
     NetHandler["Write" .. v] = function(self, data, extras)
         table.insert(self.data, {
-            type = k,
+            type = v,
             data = data,
             extras
         })
@@ -68,11 +68,11 @@ local function processQueue()
 
         for k, v in ipairs(messageData.data) do
             if v.extras then
-                net[types[v.extras]](v.data, v.extras)
+                net["Write" .. v.type](v.data, v.extras)
                 continue
             end
 
-            net[types[v.type]](v.data)
+            net["Write" .. v.type](v.data)
         end
 
         net.SendToServer()
