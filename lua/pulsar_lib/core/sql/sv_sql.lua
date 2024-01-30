@@ -43,7 +43,12 @@ function SQL:ConnectMySQL()
 
 	self.Connection.onConnected = function()
 		logger:Info("Successfully connected to mysql database")
-		hook.Run("PulsarLib.SQL.Connected")
+
+		local function runHook()
+			hook.Run("PulsarLib.SQL.Connected")
+		end
+
+		PulsarLib.SQL:RawQuery("CREATE TABLE IF NOT EXISTS pulsarlib_migrations(migration VARCHAR(255) NOT NULL PRIMARY KEY, addon VARCHAR(255) NOT NULL);", runHook, runHook)
 		PulsarLib.SQL.Connected = true
 	end
 
@@ -57,7 +62,12 @@ function SQL:ConnectMySQL()
 end
 
 function SQL:ConnectSQLite()
-	hook.Run("PulsarLib.SQL.Connected")
+	local function runHook()
+		hook.Run("PulsarLib.SQL.Connected")
+	end
+
+	PulsarLib.SQL:RawQuery("CREATE TABLE IF NOT EXISTS pulsarlib_migrations(migration VARCHAR(255) NOT NULL PRIMARY KEY, addon VARCHAR(255) NOT NULL);", runHook, runHook)
+
 	PulsarLib.SQL.Connected = true
 end
 

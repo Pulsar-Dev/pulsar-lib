@@ -87,6 +87,13 @@ end
 function PulsarLib.SQL.Migrations:RunAll()
 	self.Logging:Debug("Running migrations for addon " .. self.parent.name)
 
+	local canRun = hook.Run("PulsarLib.SQL.Migrations.Start", self.parent.name)
+
+	if not canRun then
+		self.Logging:Warning("Migrations for addon " .. self.parent.name .. " were cancelled")
+		return
+	end
+
 	return self:LoadRan(function()
 		return self:LoadStored(function()
 			return self:Run(function()
@@ -96,16 +103,4 @@ function PulsarLib.SQL.Migrations:RunAll()
 			end)
 		end)
 	end)
-end
-
-local function createTable()
-	PulsarLib.SQL:RawQuery("CREATE TABLE IF NOT EXISTS pulsarlib_migrations(migration VARCHAR(255) NOT NULL PRIMARY KEY, addon VARCHAR(255) NOT NULL);")
-end
-
-hook.Add("PulsarLib.SQL.Connected", "PulsarLib.RunMigrations", function()
-	createTable()
-end)
-
-if PulsarLib.SQL:IsConnected() then
-	createTable()
 end
