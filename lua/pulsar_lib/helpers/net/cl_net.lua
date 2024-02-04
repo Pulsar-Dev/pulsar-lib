@@ -53,7 +53,7 @@ for k, v in pairs(types) do
         table.insert(self.data, {
             type = v,
             data = data,
-            extras
+            extras = extras
         })
 
         return self
