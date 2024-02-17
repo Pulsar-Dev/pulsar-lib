@@ -113,7 +113,7 @@ end
 function NetHandler:Broadcast()
     net.Start(self.name)
 
-    for k, v in ipairs(self.extras) do
+    for k, v in ipairs(self.data) do
         if v.extras then
             net["Write" .. v.type](v.data, v.extras)
             continue
