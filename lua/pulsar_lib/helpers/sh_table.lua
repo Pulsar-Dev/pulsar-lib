@@ -45,3 +45,13 @@ function PulsarLib.PrintTableTypes(tbl, indent)
         end
     end
 end
+
+function PulsarLib.Table.Filter(tbl, predicate)
+    local result = {}
+    for i, v in pairs(tbl) do
+        if predicate(v) then
+            table.insert(result, v)
+        end
+    end
+    return result
+end
