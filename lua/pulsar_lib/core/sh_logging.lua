@@ -1,14 +1,17 @@
---- Logging Library.
--- @author Joshua Piper
--- @module PulsarLib.Logging
--- @alias logging
+--- Logging Library. By Joshua Piper
 
 PulsarLib = PulsarLib or {}
 PulsarLib.Logging = PulsarLib.Logging or setmetatable({
 	stored = {}
 }, {__index = PulsarLib})
+
+--- @class Logging
+--- @field stored table A table of all stored loggers.
 local logging = PulsarLib.Logging
 
+--- Takes an arbitrary number of arguments and flattens them into a single table
+--- @param ... any Arguments to flatten.
+--- @return table
 local function flatten(...)
 	local out = {}
 	local n = select('#', ...)
@@ -35,7 +38,7 @@ end
 logging.flatten = flatten
 
 --- Print a message out to console
--- @param ... Stringable instances to print.
+--- @param ... any Stringable instances to print.
 function logging.print(...)
 	MsgC(unpack(flatten(...)))
 	print()
@@ -86,24 +89,30 @@ logging.Colours = {
 }
 
 --- Parse a logging name to a level.
--- @tparam string|number level
--- @treturn ?number
+--- @param level string|number
+--- @return number|string|nil
 function logging:Parse(level)
 	if level == "INHERIT" or level == -1 then
 		return nil
 	end
 
-	if tonumber(level) ~= nil then
-		level = tonumber(level)
+
+	local numLevel = tonumber(level)
+	if numLevel ~= nil then
+		level = numLevel
 	end
 
-	if isnumber(level) then
-		return math.Clamp(level, self.Levels._MIN, self.Levels._MAX)
-	end
 
-	if self.Levels[level] then
-		return self.Levels[level]
-	end
+    if isnumber(level) then
+        local numLevel = tonumber(level)
+        if numLevel ~= nil then
+            return math.Clamp(numLevel, self.Levels._MIN, self.Levels._MAX)
+        end
+    end
+
+    if self.Levels[level] then
+        return self.Levels[level]
+    end
 
 	-- If we cannot parse the log level, return back to inheriting.
 	-- Internally, the root logger will return the default level, so no worries there.
@@ -111,9 +120,9 @@ function logging:Parse(level)
 end
 
 --- Build the logging method for a given level.
--- @tparam Logger logger Logger to build the method for.
--- @string component The component name to build for.
--- @number level Required logging level.
+--- @param component string The component name to build for.
+--- @param level number|string Required logging level.
+--- @return function
 function logging:Build(component, level)
 	local levelValue = isnumber(level) and level or self.Levels[level:upper()]
 
@@ -165,9 +174,24 @@ function logging:Build(component, level)
 	end
 end
 
+--- @class Logger
+--- @field name string
+--- @field level number|string
+--- @field Trace1 function
+--- @field Trace2 function
+--- @field Trace3 function
+--- @field Debug function
+--- @field Info function
+--- @field Warning function
+--- @field Error function
+--- @field Critical function
+--- @field Fatal function
 local logger = {}
 logger.__index = logger
 
+--- Create a new logger instance.
+--- @param name string
+--- @param loggingMeta Logging
 function logger:New(name, loggingMeta)
 	local log = setmetatable({
 		name = name,
@@ -187,15 +211,22 @@ function logger:New(name, loggingMeta)
 	return log
 end
 
+--- Sets the level of the logger.
+--- @param level string|number
+--- @return Logger
 function logger:SetLevel(level)
-	self.level = logging:Parse(level)
+	self.level = logging:Parse(level) or logging.Levels.INHERIT
 	return self
 end
 
+--- Fetch the level of the logger.
+--- @return number|string
 function logger:GetLevel()
 	return self.level
 end
 
+--- Fetch the loggers parents name.
+--- @return string|nil
 function logger:GetParentName()
 	local path = string.Explode(".", self.name)
 	local len = #path
@@ -209,6 +240,8 @@ function logger:GetParentName()
 	return table.concat(path, ".", 1, len - 1)
 end
 
+--- Fetch the logger parent.
+--- @return Logger|nil
 function logger:GetParent()
 	local key = self:GetParentName()
 	if not key then
@@ -218,6 +251,9 @@ function logger:GetParent()
 	return logging:GetLogger(key)
 end
 
+--- Fetch the name of a child logger.
+--- @param key string
+--- @return string
 function logger:GetChildName(key)
 	if self.name == "" then
 		return key
@@ -228,10 +264,15 @@ function logger:GetChildName(key)
 	return table.concat(path, ".")
 end
 
+--- Fetch a child logger.
+--- @param key string
+--- @return Logger
 function logger:GetChild(key)
 	return logging:GetLogger(self:GetChildName(key))
 end
 
+--- Fetch the effective level of the logger.
+--- @return number|string
 function logger:GetEffectiveLevel()
 	if self.level then
 		return self.level
@@ -245,13 +286,15 @@ function logger:GetEffectiveLevel()
 	return logging.Levels.DEFAULT
 end
 
+--- Highlights a given set of arguments.
+--- @param ... any
 function logger:Highlight(...)
 	return logging:Highlight(...)
 end
 
 --- Get or create a cached logging instance.
--- @string name Name of the logger to fetch.
--- @treturn Logger
+--- @param name string Name of the logger to fetch.
+--- @return Logger
 function logging:GetLogger(name)
 	local key = name:lower()
 	if not self.stored[key] then
@@ -261,27 +304,27 @@ function logging:GetLogger(name)
 	return self.stored[key]
 end
 
---- Get or create a cached logging instance.
--- @function logging:Get(name)
--- @string name Name of the logger to fetch.
--- @treturn Logger
 logging.Get = logging.GetLogger
 
 --- Fetch the root logging instance.
--- @treturn Logger
+--- @return Logger
 function logging:Root()
 	return self:GetLogger("")
 end
 
 --- Wrap given statements in highlight colours.
--- @param ...
--- @treturn table
+--- @param ... any
+--- @return table
 function logging:Highlight(...)
 	local hl = {self.Colours.Highlights, ...}
 	table.insert(hl, self.Colours.Text)
 	return hl
 end
 
+--- Sets a set of arguments to a given level.
+--- @param level string
+--- @param ... any
+--- @return table
 function logging:AsLevel(level, ...)
 	local parsed = self:Parse(level:upper())
 	if parsed == nil then
@@ -318,9 +361,9 @@ logging.Phrases = {
 }
 
 --- Create a table with the brand name.
--- @bool wrapped Should the Brand be wrapped in [].
--- @string event It's a secret tool that'll help us later.
--- @rtab
+--- @param wrapped boolean Should the Brand be wrapped in [].
+--- @param event string It's a secret tool that'll help us later.
+--- @return table
 function logging:Brand(wrapped, event)
 	if not event then
 		event = ""
@@ -342,65 +385,55 @@ function logging:Brand(wrapped, event)
 end
 
 --- Emit a log with a Fatal log level.
--- @function logger:Fatal(...)
--- @param ... Stringable arguments.
+--- @param ... any Stringable arguments.
 function logging:Fatal(...)
 	self:Root():Fatal(...)
 end
 
 --- Emit a log with a Critical log level.
--- @function logger:Critical(...)
--- @param ... Stringable arguments.
+--- @param ... any Stringable arguments.
 function logging:Critical(...)
 	self:Root():Critical(...)
 end
 
 --- Emit a log with a Error log level.
--- @function logger:Error(...)
--- @param ... Stringable arguments.
+--- @param ... any Stringable arguments.
 function logging:Error(...)
 	self:Root():Error(...)
 end
 
 --- Emit a log with a Warning log level.
--- @function logger:Warning(...)
--- @param ... Stringable arguments.
+--- @param ... any Stringable arguments.
 function logging:Warning(...)
 	self:Root():Warning(...)
 end
 
 --- Emit a log with a Info log level.
--- @function logger:Info(...)
--- @param ... Stringable arguments.
-
+--- @param ... any Stringable arguments.
 function logging:Info(...)
 	self:Root():Info(...)
 end
 
 --- Emit a log with a Debug log level.
--- @function logger:Debug(...)
--- @param ... Stringable arguments.
+--- @param ... any Stringable arguments.
 function logging:Debug(...)
 	self:Root():Debug(...)
 end
 
 --- Emit a log with a level 1 trace log level.
--- @function logger:Trace1(...)
--- @param ... Stringable arguments.
+--- @param ... any Stringable arguments.
 function logging:Trace1(...)
 	self:Root():Trace1(...)
 end
 
 --- Emit a log with a level 2 trace log level.
--- @function logger:Trace2(...)
--- @param ... Stringable arguments.
+--- @param ... any Stringable arguments.
 function logging:Trace2(...)
 	self:Root():Trace2(...)
 end
 
 --- Emit a log with a level 3 trace log level.
--- @function logger:Trace3(...)
--- @param ... Stringable arguments.
+--- @param ... any Stringable arguments.
 function logging:Trace3(...)
 	self:Root():Trace3(...)
 end
