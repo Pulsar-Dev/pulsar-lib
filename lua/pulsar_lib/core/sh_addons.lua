@@ -9,6 +9,8 @@ PulsarLib.Addons.WaitingForDeps = PulsarLib.Addons.WaitingForDeps or {}
 PulsarLib.Addons.WaitingForLoad = PulsarLib.Addons.WaitingForLoad or {}
 PulsarLib.Addons.Registered = PulsarLib.Addons.Registered or {}
 local loaders = {}
+
+--- @see PulsarLib.Include
 loaders.Include = function(self, path, state, full)
 	self = self.PulsarLibAddon
 	if not full then
@@ -27,6 +29,7 @@ loaders.Include = function(self, path, state, full)
 	end
 end
 
+--- @see PulsarLib.IncludeDir
 loaders.IncludeDir = function(self, path, state)
 	path = self.PulsarLibAddon.Folder .. "/" .. path
 	if not path:EndsWith("/") then path = path .. "/" end
@@ -38,6 +41,7 @@ loaders.IncludeDir = function(self, path, state)
 	end
 end
 
+--- @see PulsarLib.IncludeDirRecursive
 loaders.IncludeDirRecursive = function(self, path, state, full)
 	if not full then path = self.PulsarLibAddon.Folder .. "/" .. path end
 	if not path:EndsWith("/") then path = path .. "/" end
@@ -53,8 +57,19 @@ loaders.IncludeDirRecursive = function(self, path, state, full)
 	end
 end
 
-local addons = PulsarLib.Addons
+--- @class AddonHandler
+--- @field name string The name of the addon.
+--- @field Folder string The folder of the addon.
+--- @field GlobalVar table The global variable for the addon.
+--- @field Phrases table The phrases for the addon.
+--- @field OnLoad function The function to run when the addon is loaded.
+--- @field Dependencies table The dependencies for the addon.
+--- @field RequiredVars table The required global variables for the addon to load.
 local AddonHandler = {}
+
+--- Creates a new Addon.
+--- @param name string The name of the addon.
+--- @return AddonHandler Addon The new Addon.
 function AddonHandler.Create(name)
 	local addon = setmetatable({}, {
 		__index = AddonHandler
@@ -64,36 +79,55 @@ function AddonHandler.Create(name)
 	return addon
 end
 
+--- Sets the folder of the addon. This is the folder that the addon's files are located in.
+--- @param dir string The folder of the addon.
+--- @return AddonHandler Addon The addon.
 function AddonHandler:SetFolder(dir)
 	self.Folder = dir
 	return self
 end
 
+--- Sets the global variable for the addon. This should be the same that is defined in your addons files.
+--- @param var table The global variable for the addon.
+--- @return AddonHandler Addon The addon.
 function AddonHandler:SetGlobalVar(var)
 	self.GlobalVar = var
 	return self
 end
 
+--- Sets the phrases for the addon. This is used for the logging prefixes.
+--- @param phrases table The phrases for the addon.
+--- @return AddonHandler Addon The addon.
 function AddonHandler:SetPhrases(phrases)
 	self.Phrases = phrases
 	return self
 end
 
+--- A function that is ran when the addon is loaded.
+--- @param func function The function to run when the addon is loaded.
+--- @return AddonHandler Addon The addon.
 function AddonHandler:SetOnLoad(func)
 	self.OnLoad = func
 	return self
 end
 
+--- Sets the dependencies for the addon. This is a table of addon names and their versions.
+--- @param deps table The dependencies for the addon.
+--- @return AddonHandler Addon The addon.
 function AddonHandler:SetDependencies(deps)
 	self.Dependencies = deps
 	return self
 end
 
+--- Sets the required global variables for the addon to load. This is a table of global variable names.
+--- @param requiredVars table The required global variables for the addon to load.
+--- @return AddonHandler Addon The addon.
 function AddonHandler:SetRequiredVars(requiredVars)
 	self.RequiredVars = requiredVars
 	return self
 end
 
+--- Loads the addon.
 function AddonHandler:Load()
 	if not self.GlobalVar then
 		PulsarLib.Logging:Error("Addon " .. self.name .. " has no global var")
@@ -276,4 +310,4 @@ function AddonHandler:Load()
 	table.insert(PulsarLib.Addons.Registered, self.name)
 end
 
-addons.Create = AddonHandler.Create
+PulsarLib.Addons.Create = AddonHandler.Create
