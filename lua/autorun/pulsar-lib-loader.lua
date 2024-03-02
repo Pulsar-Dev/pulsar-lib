@@ -6,10 +6,10 @@ end
 
 local loadLogger
 --- Includes a file based on the prefix, the state, and the path.
--- @param path The path to the file to include.
--- @param state The state to include the file in. If nil, the state is determined by the file's prefix.
--- @param full If true, the path is not prefixed with "pulsar_lib/" and is not checked for a ".lua" extension.
--- @return The return value of the included file.
+--- @param path string The path to the file to include.
+--- @param state? string The state to include the file in. If nil, the state is determined by the file's prefix.
+--- @param full? boolean If true, the path is not prefixed with "pulsar_lib/" and is not checked for a ".lua" extension.
+--- @return any The return value of the included file.
 function PulsarLib:Include(path, state, full)
 	if not full then
 		path = "pulsar_lib/" .. path
@@ -37,8 +37,8 @@ function PulsarLib:Include(path, state, full)
 end
 
 --- Includes all files within a directory. The directory is prefixed with "pulsar_lib/".
--- @param path The path to the directory to include.
--- @param state The state to include the files in. If nil, the state is determined by the file's prefix.
+--- @param path string The path to the directory to include.
+--- @param state? string The state to include the files in. If nil, the state is determined by the file's prefix.
 function PulsarLib:IncludeDir(path, state)
 	path = "pulsar_lib/" .. path
 	if not path:EndsWith("/") then
@@ -56,9 +56,9 @@ function PulsarLib:IncludeDir(path, state)
 end
 
 --- Recursively includes all files within a directory. The directory is prefixed with "pulsar_lib/" unless full is true.
--- @param path The path to the directory to include.
--- @param state The state to include the files in. If nil, the state is determined by the file's prefix.
--- @param full If true, the path is not prefixed with "pulsar_lib/" and is not checked for a ".lua" extension.
+--- @param path string The path to the directory to include.
+--- @param state? string The state to include the files in. If nil, the state is determined by the file's prefix.
+--- @param full? boolean If true, the path is not prefixed with "pulsar_lib/" and is not checked for a ".lua" extension.
 function PulsarLib:IncludeDirRecursive(path, state, full)
 	if not full then
 		path = "pulsar_lib/" .. path
