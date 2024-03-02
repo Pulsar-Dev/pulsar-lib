@@ -6,11 +6,10 @@ local select = select
 local unpack = unpack
 
 --- Builds a partial function, with stored arguments.
--- @usage local positiveOnly = partial(max, 0)
--- @usage print(positiveOnly(-1)) -- Returns 0.
--- @usage print(positiveOnly(2)) -- Returns 2.
--- @tparam function func Input function to curry.
--- @param ... Arguments to store.
+--- @param func function Input function to curry.
+--- @param ... any Arguments to store.
+--- @return function function Partial function.
+--- See https://docs.lythium.dev/pulsar-lib/functional/partial
 function fn.partial(func, ...)
 	local args = {...}
 	local st = #args
@@ -26,14 +25,13 @@ function fn.partial(func, ...)
 end
 
 --- Returns parameters without any changes.
--- @param ... Input paramters.
+--- @param ... any Input paramters.
 local function null(...) return ... end
 
 --- Returns a function where the first two inputs are flipped.
--- @tparam function func Input function.
--- @treturn function Flipped function.
--- @usage local flippedPrint = flip(print)
--- @usage flippedPrint("hello", "world") -- Outputs: "world hello"
+--- @param func function Input function.
+--- @return function function Flipped function.
+--- See https://docs.lythium.dev/pulsar-lib/functional/flip
 function fn.flip(func)
 	return function(a, b, ...)
 		return func(b, a, ...)
@@ -41,9 +39,9 @@ function fn.flip(func)
 end
 
 --- Reverses a set of input arguments.
--- @tparam ... vararg Input argument.
--- @treturn vararg Flipped outputs.
--- @see lua-wiki(CurriedLua)
+--- @param ... any Input argument.
+--- @return ... Flipped outputs.
+--- See https://docs.lythium.dev/pulsar-lib/functional/reverse
 function fn.reverse(...)
 	local function reverse_h(acc, v, ...)
 		if select('#', ...) == 0 then
@@ -57,8 +55,9 @@ function fn.reverse(...)
 end
 
 --- Build a function o from f/g so that f(g(x)) == o(x)
--- @tparam vararg ... Input functions.
--- @treturn function Composed function.
+--- @param ... function Input functions.
+--- @return function function Composed function.
+--- See https://docs.lythium.dev/pulsar-lib/functional/reverse
 function fn.compose(...)
 	local m = select("#", ...)
 	if m == 0 then return null end

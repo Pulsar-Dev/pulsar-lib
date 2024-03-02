@@ -266,7 +266,7 @@ function AddonHandler:Load()
 			hook.Add("PulsarLib.Module.FailedLoad", "PulsarLib.Addons." .. self.name .. ".Dependency." .. dependency, function(moduleName, err)
 				if moduleName ~= dependency then return end
 				errorMsg = err
-				PulsarLib.Logging:Error("Addon " .. self.name .. " has errored during load: " .. error)
+				PulsarLib.Logging:Error("Addon " .. self.name .. " has errored during load: " .. errorMsg)
 				hook.Remove("PulsarLib.Module.FailedLoad", "PulsarLib.Addons." .. self.name .. ".Dependency." .. dependency)
 			end)
 		end
