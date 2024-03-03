@@ -8,6 +8,8 @@ local logger = PulsarLib.Logging:Get("Database")
 
 file.CreateDir("pulsarlib")
 
+--- Fetch the details from the mysql.json file.
+--- @return table
 function SQL:FetchDetails()
 	local details = {
 		UsingMySQL = false
@@ -35,6 +37,7 @@ function SQL:FetchDetails()
 	return details
 end
 
+--- Connect to the mysql database.
 function SQL:ConnectMySQL()
 	if self.Connection then return end
 
@@ -61,6 +64,7 @@ function SQL:ConnectMySQL()
 	self.Connection:connect()
 end
 
+--- "Connect" to the sqlite database.
 function SQL:ConnectSQLite()
 	local function runHook()
 		hook.Run("PulsarLib.SQL.Connected")
@@ -71,10 +75,13 @@ function SQL:ConnectSQLite()
 	PulsarLib.SQL.Connected = true
 end
 
+--- Checks if the server is connected to the database.
+--- @return boolean
 function SQL:IsConnected()
 	return PulsarLib.SQL.Connected == true
 end
 
+--- Connects to the database
 function SQL:Connect()
 	self:FetchDetails()
 
@@ -85,6 +92,8 @@ function SQL:Connect()
 	end
 end
 
+--- Checks if the server is using MySQL.
+--- @return boolean
 function SQL:IsMySQL()
 	return self.Details.UsingMySQL == true
 end
@@ -94,8 +103,10 @@ hook.Add("Think", "PulsarLib.ConnectToSQL", function()
 	SQL:Connect()
 end)
 
--- Manually replace ? with values in a query
-function SQL:prepareStatement(query, values)
+--- Prepare a statement for execution.
+--- @param query string The query to prepare.
+--- @param values table The values to replace the ? with.
+function SQL:prepareStatement(query, values) -- Manually replace ? with values in a query
 	values = values or {}
 	local newQuery = ""
 	local i = 1
@@ -104,6 +115,8 @@ function SQL:prepareStatement(query, values)
 	while true do
 		local start, stop = string.find(query, "?", last + 1, true)
 		if not start then break end
+		if not stop then break end
+
 		newQuery = newQuery .. string.sub(query, last + 1, start - 1)
 		local value = values[i]
 
@@ -129,6 +142,7 @@ function SQL:prepareStatement(query, values)
 	return newQuery
 end
 
+-- A table of replacements to make the MySQL queries partially compatible with SQLite.
 local sqliteReplaces = {
 	["AUTO_INCREMENT"] = "AUTOINCREMENT",
 	["LAST_INSERT_ID()"] = "last_insert_rowid()",
@@ -137,6 +151,10 @@ local sqliteReplaces = {
 
 local emptyFunction = function() end
 
+--- Executes a raw SQL query.
+--- @param query string The query to execute.
+--- @param onSuccess function The function to call on success.
+--- @param onError function The function to call on error.
 function SQL:RawQuery(query, onSuccess, onError)
 	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
@@ -165,18 +183,23 @@ function SQL:RawQuery(query, onSuccess, onError)
 		for _, line in ipairs(x) do
 			logger:Trace1(line)
 		end
-		query = sql.Query(query)
+		local queryReturn = sql.Query(query)
 
-		if query == false then
+		if queryReturn == false then
 			logger:Fatal("SQL query failed!")
 			logger:Fatal(sql.LastError())
 			onError(sql.LastError())
 		else
-			onSuccess(query)
+			onSuccess(queryReturn)
 		end
 	end
 end
 
+--- Executes a prepared SQL query.
+--- @param query string The query to execute.
+--- @param values table The values to replace the ? with.
+--- @param onSuccess function The function to call on success.
+--- @param onError function The function to call on error.
 function SQL:PreparedQuery(query, values, onSuccess, onError)
 	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
@@ -220,20 +243,24 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 			logger:Debug(line)
 		end
 
-		query = SQL:prepareStatement(query, values)
+		local preparedQuery = SQL:prepareStatement(query, values)
+		if not preparedQuery then return end
 
-		query = sql.Query(query)
+		local queryReturn = sql.Query(preparedQuery)
 
-		if query == false then
+		if queryReturn == false then
 			logger:Fatal("SQL query failed!")
 			logger:Fatal(sql.LastError())
 			onError(sql.LastError())
 		else
-			onSuccess(query)
+			onSuccess(queryReturn)
 		end
 	end
 end
 
+--- Escapes a string for use in a SQL query.
+--- @param str string The string to escape.
+--- @return string
 function SQL:Escape(str)
 	if self.Details.UsingMySQL then
 		return "'" .. self.Connection:escape(str) .. "'"

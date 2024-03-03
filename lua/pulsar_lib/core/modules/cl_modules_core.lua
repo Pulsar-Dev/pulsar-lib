@@ -5,6 +5,10 @@ file.CreateDir("pulsarlib/modules")
 
 local emptyFunc = function() end
 
+--- Loads a module.
+--- @param module string The name of the module to load.
+--- @param version string The version of the module to load.
+--- @param callback function The function to call when the module has been loaded.
 function PulsarLib.Modules.LoadModule(module, version, callback)
 	callback = callback or emptyFunc
 
@@ -46,7 +50,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 			logger:Error("Unable to load module '", logger:Highlight(module), "' (unable to get load data)")
 			hook.Run("PulsarLib.Module.FailedLoad", module, "unable to get load data")
 			callback(false)
-			return nil
+			return
 		end
 
 		local loadHook = loadData.hook
@@ -57,7 +61,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 			PulsarLib.Modules.Loaded[module] = true
 			hook.Run("PulsarLib.Module.Loaded", module, version)
 			callback(true)
-			return nil
+			return
 		end
 
 		logger:Debug("Waiting for module '", logger:Highlight(module), "' to load using hook '", logger:Highlight(loadHook), "'")

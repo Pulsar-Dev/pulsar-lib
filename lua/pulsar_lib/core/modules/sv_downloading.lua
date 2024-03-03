@@ -17,6 +17,8 @@ local baseURL = "https://raw.githubusercontent.com/Pulsar-Dev/pulsar-lib-modules
 local emptyFunc = function() end
 local logger = PulsarLib.Logging:Get("ModuleLoader")
 
+--- Downloads the global metadata for all modules.
+--- @param callback? fun(success: boolean) The function to call when the metadata has been downloaded.
 function PulsarLib.Modules.DownloadMetadata(callback)
     callback = callback or emptyFunc
 
@@ -42,6 +44,8 @@ function PulsarLib.Modules.DownloadMetadata(callback)
     })
 end
 
+--- Gets the global metadata for all modules.
+--- @param callback? fun(success: boolean, data: table) The function to call when the metadata has been retrieved.
 function PulsarLib.Modules.GetMetadata(callback)
     callback = callback or emptyFunc
     if not file.Exists("pulsarlib/modules/metadata.json", "DATA") then
@@ -59,15 +63,18 @@ function PulsarLib.Modules.GetMetadata(callback)
 
     local metadata = file.Read("pulsarlib/modules/metadata.json", "DATA")
     if not metadata then return {} end
-    metadata = util.JSONToTable(metadata)
+    local metadata = util.JSONToTable(metadata)
     callback(true, metadata)
     return metadata
 end
 
+--- Downloads the metadata for a specific module.
+--- @param name string The name of the module to download the metadata for.
+--- @param callback? fun(success: boolean) The function to call when the metadata has been downloaded.
 function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
     callback = callback or emptyFunc
     local metadata = PulsarLib.Modules.GetMetadata()
-    if not metadata[name] then
+    if not metadata or not metadata[name] then
         PulsarLib.Logging:Error("Module '", logger:Highlight(name), "' does not exist")
         callback(false)
         return nil
@@ -101,6 +108,9 @@ function PulsarLib.Modules.DownloadModuleMetaData(name, callback)
     end)
 end
 
+--- Gets the metadata for a specific module.
+--- @param name string The name of the module to get the metadata for.
+--- @param callback? fun(success: boolean, data: table) The function to call when the metadata has been retrieved.
 function PulsarLib.Modules.GetModuleMetaData(name, callback)
     callback = callback or emptyFunc
 
@@ -115,6 +125,9 @@ function PulsarLib.Modules.GetModuleMetaData(name, callback)
     end)
 end
 
+--- Checks if a module exists.
+--- @param name string The name of the module to check for.
+--- @param callback? fun(exists: boolean, data: table) The function to call when the check has been completed.
 function PulsarLib.Modules.ModuleExists(name, callback)
     callback = callback or emptyFunc
 
@@ -128,6 +141,9 @@ function PulsarLib.Modules.ModuleExists(name, callback)
     end)
 end
 
+--- Gets the versions data for a specific module.
+--- @param name string The name of the module to get the versions data for.
+--- @param callback? fun(success: boolean, data: table) The function to call when the versions data has been retrieved.
 function PulsarLib.Modules.GetVersionsData(name, callback)
     callback = callback or emptyFunc
 
@@ -146,6 +162,9 @@ function PulsarLib.Modules.GetVersionsData(name, callback)
     end)
 end
 
+--- Gets the latest version of a module.
+--- @param name string The name of the module to get the latest version for.
+--- @param callback? fun(success: boolean, version: string) The function to call when the latest version has been retrieved.
 function PulsarLib.Modules.GetLatestVersion(name, callback)
     callback = callback or emptyFunc
 
@@ -164,6 +183,10 @@ function PulsarLib.Modules.GetLatestVersion(name, callback)
     end)
 end
 
+--- Gets the data for a specific version of a module.
+--- @param name string The name of the module to get the version data for.
+--- @param version string The version of the module to get the data for.
+--- @param callback? fun(success: boolean, data: table) The function to call when the version data has been retrieved.
 function PulsarLib.Modules.GetVersionData(name, version, callback)
     callback = callback or emptyFunc
 
@@ -182,6 +205,10 @@ function PulsarLib.Modules.GetVersionData(name, version, callback)
     end)
 end
 
+--- Gets the dependencies for a specific version of a module.
+--- @param name string The name of the module to get the dependencies for.
+--- @param version string The version of the module to get the dependencies for.
+--- @param callback? fun(success: boolean, dependencies: table) The function to call when the dependencies have been retrieved.
 function PulsarLib.Modules.GetDependencies(name, version, callback)
     callback = callback or emptyFunc
 
@@ -195,6 +222,10 @@ function PulsarLib.Modules.GetDependencies(name, version, callback)
     end)
 end
 
+--- Downloads a specific version of a module.
+--- @param name string The name of the module to download.
+--- @param version string The version of the module to download.
+--- @param callback? fun(success: boolean) The function to call when the module has been downloaded.
 function PulsarLib.Modules.DownloadModule(name, version, callback)
     callback = callback or emptyFunc
 
@@ -256,6 +287,9 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
     end)
 end
 
+--- Gets the load data for a specific module.
+--- @param name string The name of the module to get the load data for.
+--- @param callback? fun(success: boolean, data: table) The function to call when the load data has been retrieved.
 function PulsarLib.Modules.GetLoadData(name, callback)
     callback = callback or emptyFunc
 

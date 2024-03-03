@@ -1,4 +1,7 @@
 if CLIENT then
+    --- Send a notification to the current player.
+    --- @param msg string The message to display.
+    --- @param len number The length of the notification.
     function PulsarLib.Notify(msg, len)
         notification.AddLegacy(msg, NOTIFY_GENERIC, len)
     end
@@ -13,6 +16,10 @@ end
 if SERVER then
     util.AddNetworkString("PulsarLib.Notify")
 
+    --- Send a notification to the specified player.
+    --- @param ply Player The player to send the notification to.
+    --- @param msg string The message to display.
+    --- @param length number The length of the notification.
     function PulsarLib.Notify(ply, msg, length)
         net.Start("PulsarLib.Notify")
         net.WriteString(msg)

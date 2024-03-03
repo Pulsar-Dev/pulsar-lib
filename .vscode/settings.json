@@ -1,0 +1,17 @@
+{
+    "Lua.diagnostics.globals": [
+        "mysqloo",
+        "reqwest",
+        "CHTTP"
+    ],
+    "Lua.runtime.special": {
+        "include": "require",
+        "IncludeCS": "require"
+    },
+    "Lua.runtime.nonstandardSymbol": [
+        "continue",
+        "!=",
+        "||"
+    ],
+    "Lua.runtime.version": "Lua 5.1",
+}

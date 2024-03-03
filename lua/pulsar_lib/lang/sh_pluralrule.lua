@@ -1,3 +1,7 @@
+--- @class PluralRule
+--- @field rules table<number, function|table|number|boolean>
+--- @field handler LanguageHandler
+--- @field id number
 local RULE = {}
 RULE.__index = RULE
 

@@ -5,6 +5,10 @@ file.CreateDir("pulsarlib/modules")
 
 local emptyFunc = function() end
 
+--- Loads a module.
+--- @param module string The name of the module to load.
+--- @param version string The version of the module to load.
+--- @param callback? fun(success: boolean) The function to call when the module has been loaded.
 function PulsarLib.Modules.LoadModule(module, version, callback)
 	callback = callback or emptyFunc
 
@@ -167,11 +171,11 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 
 							if mountSuccess then
 								for _, autorunFile in ipairs(mountedFiles) do
-									if string.StartWith(autorunFile, "lua/autorun/") and string.EndsWith(autorunFile, ".lua") then
+									if string.StartsWith(autorunFile, "lua/autorun/") and string.EndsWith(autorunFile, ".lua") then
 										autorunFile = string.sub(autorunFile, 5)
-										if string.StartWith(autorunFile, "lua/autorun/server/") then
+										if string.StartsWith(autorunFile, "lua/autorun/server/") then
 											include(autorunFile)
-										elseif string.StartWith(autorunFile, "lua/autorun/client/") then
+										elseif string.StartsWith(autorunFile, "lua/autorun/client/") then
 											AddCSLuaFile(autorunFile)
 										else
 											include(autorunFile)

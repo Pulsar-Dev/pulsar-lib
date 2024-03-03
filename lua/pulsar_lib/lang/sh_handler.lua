@@ -1,8 +1,14 @@
+--- @class LanguageHandler
+--- @field rules PluralRule[]
+--- @field languages Language[]
+--- @field filePath string
 local HANDLER = {}
 HANDLER.__index = HANDLER
 
 local logger = PulsarLib.Logging:Get("Language")
 
+--- Create a new language handler.
+--- @return LanguageHandler
 function HANDLER:New()
 	return setmetatable({
 		rules = {},
@@ -12,6 +18,9 @@ function HANDLER:New()
 end
 
 local RULE = PulsarLib:Include("lang/sh_pluralrule.lua")
+--- Create a new plural rule.
+--- @param id? number The ID of the plural rule.
+--- @return PluralRule
 function HANDLER:PluralRule(id)
 	if not id then
 		id = #self.rules
@@ -23,21 +32,35 @@ function HANDLER:PluralRule(id)
 	return RULE(self, id)
 end
 
+--- Register a plural rule.
+--- @param id number The ID of the plural rule.
+--- @param rule PluralRule The plural rule to register.
+--- @return LanguageHandler
 function HANDLER:RegisterRule(id, rule)
 	self.rules[id] = rule
 	return self
 end
 
 local LANG = PulsarLib:Include("lang/sh_language.lua")
+--- Get a language.
+--- @param languageCode string The language code to get.
+--- @param pluralRuleId number The plural rule ID to use.
+--- @return Language
 function HANDLER:Language(languageCode, pluralRuleId)
 	return LANG(self, languageCode, pluralRuleId)
 end
 
+--- Register a language.
+--- @param code string The language code to register.
+--- @param lang Language The language to register.
+--- @return LanguageHandler
 function HANDLER:Register(code, lang)
 	self.languages[code] = lang
 	return self
 end
 
+--- Load all language files.
+--- @return LanguageHandler
 function HANDLER:Load()
 	local languageFiles = file.Find(self.filePath, "LUA")
 	for _, langFile in ipairs(languageFiles) do
@@ -51,22 +74,34 @@ local current_language = language_convar:GetString() or language_convar:GetDefau
 cvars.AddChangeCallback(language_convar:GetName(), function(_, _, val)
 	current_language = val
 end, "PulsarLib.Language")
+
+--- Get the primary language code.
+--- @return string
 function HANDLER:PrimaryCode()
 	return current_language
 end
 
+--- Get the secondary language code.
+--- @return string string This is always "en".
 function HANDLER:SecondaryCode()
 	return "en"
 end
 
+--- Gets the primary language.
+--- @return Language
 function HANDLER:Primary()
 	return self.languages[self:PrimaryCode()]
 end
 
+--- Gets the secondary language.
+--- @return Language Language This is always the English language.
 function HANDLER:Secondary()
 	return self.languages[self:SecondaryCode()]
 end
 
+--- Gets a phrase from the selected language.
+--- @param key string The key of the phrase to get.
+--- @return string
 function HANDLER:Phrase(key)
 	local lang, phrase
 
@@ -89,6 +124,10 @@ function HANDLER:Phrase(key)
 	return key
 end
 
+--- Gets a string pluralised from the selected language.
+--- @param key string The key of the plural to get.
+--- @param count number The count to check against.
+--- @return string
 function HANDLER:Plural(key, count)
 	local lang, rule, plural
 
@@ -114,16 +153,14 @@ function HANDLER:Plural(key, count)
 end
 
 --- Interpolate a language string.
--- The language string must be in the form "regular text {{plural_name|number_key}} {{data_key}} {{languageKey}}".
--- pluralKeys are localised with the number passed as the second argument. For example, if "computer" was a key, {{computer|2}} would become "computers".
--- dataKeys are interpolated with variables from the data parameter. data = {name = "John"}, str = "Hello {{name}}" -> "Hello John".
--- If neither of these fit, then it's passed back to the localisation system as a key.
--- If none of these work, it is replaced with "??".
--- @string str String to interpolate.
--- @tparam[opt={}] table<string, stringable> data A string keyed table of stringable parameters to pass into the localised string.
--- @string code Language to use.
--- @string[opt] fallback Fallback language.
--- @rstring Localised String.
+--- The language string must be in the form "regular text {{plural_name|number_key}} {{data_key}} {{languageKey}}".
+--- pluralKeys are localised with the number passed as the second argument. For example, if "computer" was a key, {{computer|2}} would become "computers".
+--- dataKeys are interpolated with variables from the data parameter. data = {name = "John"}, str = "Hello {{name}}" -> "Hello John".
+--- If neither of these fit, then it's passed back to the localisation system as a key.
+--- If none of these work, it is replaced with "??".
+--- @param str string The string to interpolate.
+--- @param data table<string, any> A string keyed table of stringable parameters to pass into the localised string.
+--- @return string
 function HANDLER:Interpolate(str, data)
 	if not data then
 		data = {}
@@ -171,6 +208,10 @@ function HANDLER:Interpolate(str, data)
 	return str
 end
 
+--- Calls the language handler.
+--- @param name string The key of the phrase to get.
+--- @param data table<string, any> A string keyed table of stringable parameters to pass into the localised string.
+--- @return string
 function HANDLER:__call(name, data)
 	return self:Interpolate(self:Phrase(name), data)
 end

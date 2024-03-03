@@ -3,6 +3,10 @@ PulsarLib.Net = PulsarLib.Net or {}
 
 local l = PulsarLib.Language
 
+--- Receives a net message.
+--- @param name string The name of the net message.
+--- @param func function The function to call when the net message is received.
+--- @param allowedGroups? table The groups allowed to use this net message.
 function PulsarLib.Net.Receive(name, func, allowedGroups)
     net.Receive("PulsarLib." .. name, function(len, ply, ...)
         if not IsValid(ply) then return end
@@ -28,18 +32,28 @@ function PulsarLib.Net.Receive(name, func, allowedGroups)
     end)
 end
 
+--- Starts a net message.
+--- @param name string The name of the net message to start.
 function PulsarLib.Net.Start(name)
     return net.Start("PulsarLib." .. name)
 end
 
+--- Sends a net message.
+--- @param ply Player The player to send the net message to.
 function PulsarLib.Net.Send(ply)
     return net.Send(ply)
 end
 
+--- Adds a network string.
+--- @param name string The name of the network string to add.
 function PulsarLib.Net.String(name)
     util.AddNetworkString("PulsarLib." .. name)
 end
 
+--- Sends an error message back to the player.
+--- @param ply Player The player to send the error message to.
+--- @param netString string The name of the net message.
+--- @param err string The error message to send.
 function PulsarLib.Net.Error(ply, netString, err)
     PulsarLib.Net.Start(netString)
         :WriteBool(false)
@@ -72,6 +86,9 @@ local types = {
     ["vector"] = "Vector"
 }
 
+--- Starts a new net message.
+--- @param name string The name of the net message to start.
+--- @return table
 function NetHandler.Start(name)
     local message = setmetatable({}, {
         __index = NetHandler
@@ -95,6 +112,8 @@ for k, v in pairs(types) do
     end
 end
 
+--- Sends the net message.
+--- @param ply Player|table The player(s) to send the net message to. This can be a player or a table of players.
 function NetHandler:Send(ply)
     net.Start(self.name)
 
@@ -110,6 +129,7 @@ function NetHandler:Send(ply)
     net.Send(ply)
 end
 
+--- Broadcasts the net message.
 function NetHandler:Broadcast()
     net.Start(self.name)
 

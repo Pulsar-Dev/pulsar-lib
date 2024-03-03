@@ -2,12 +2,16 @@ PulsarLib = PulsarLib or {}
 PulsarLib.Net = PulsarLib.Net or {}
 PulsarLib.NetworkQueue = PulsarLib.NetworkQueue or {}
 
+--- Receives a net message.
+--- @param name string The name of the net message to receive.
+--- @param func fun(len: integer) The function to call when the net message is received.
 function PulsarLib.Net.Receive(name, func)
     net.Receive("PulsarLib." .. name, function(len)
-        func(len, ply)
+        func(len)
     end)
 end
 
+--- Sends a net message to the server
 function PulsarLib.Net.Send()
     return net.SendToServer()
 end
@@ -37,6 +41,9 @@ local types = {
     ["vector"] = "Vector"
 }
 
+--- Starts a new net message.
+--- @param name string The name of the net message to start.
+--- @return table
 function NetHandler.Start(name)
     local message = setmetatable({}, {
         __index = NetHandler
@@ -85,6 +92,7 @@ local function processQueue()
     end
 end
 
+--- Sends the net message to the server through the net queue.
 function NetHandler:Send()
     table.insert(PulsarLib.NetworkQueue, self)
 
@@ -95,6 +103,8 @@ end
 
 PulsarLib.Net.Start = NetHandler.Start
 
+--- Dumps the network queue.
+--- WARNING: This will fully clear the network queue. Data WILL be lost. Use with caution.
 function PulsarLib.Net.DumpQueue()
     PulsarLib.NetworkQueue = {}
 end

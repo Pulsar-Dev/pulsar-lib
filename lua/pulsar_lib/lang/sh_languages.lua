@@ -3,6 +3,7 @@ PulsarLib = PulsarLib or {}
 local HANDLER = PulsarLib:Include("lang/sh_handler.lua")
 PulsarLib.Language = HANDLER()
 
+--- I have got no idea how this works
 PulsarLib.Language
     :PluralRule()() -- Asian (Chinese, Japanese, Korean), Persian, Turkic/Altaic (Turkish), Thai, Lao
     :PluralRule()(1)() -- Germanic (Danish, English, German), Finno-Ugric (Estonian), Language isolate (Basque), Greek, Latin, Hebrew, Romanic (Italian)

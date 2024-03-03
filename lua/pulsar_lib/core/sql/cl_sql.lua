@@ -6,6 +6,8 @@ PulsarLib.SQL = PulsarLib.SQL or setmetatable({
 local SQL = PulsarLib.SQL
 local logger = PulsarLib.Logging:Get("Database")
 
+--- Checks if the client is connected to the database. This is always true.
+--- @return boolean
 function SQL:IsConnected()
 	return PulsarLib.SQL.Connected == true
 end
@@ -16,8 +18,10 @@ hook.Add("Think", "PulsarLib.ConnectToSQL", function()
 	PulsarLib.SQL.Connected = true
 end)
 
--- Manually replace ? with values in a query
-function SQL:prepareStatement(query, values)
+--- Prepare a statement for execution.
+--- @param query string The query to prepare.
+--- @param values table The values to replace the ? with.
+function SQL:prepareStatement(query, values) -- Manually replace ? with values in a query
 	values = values or {}
 	local newQuery = ""
 	local i = 1
@@ -25,7 +29,10 @@ function SQL:prepareStatement(query, values)
 
 	while true do
 		local start, stop = string.find(query, "?", last + 1, true)
+
 		if not start then break end
+		if not stop then break end
+
 		newQuery = newQuery .. string.sub(query, last + 1, start - 1)
 		local value = values[i]
 
@@ -51,6 +58,7 @@ function SQL:prepareStatement(query, values)
 	return newQuery
 end
 
+-- A table of replacements to make the MySQL queries partially compatible with SQLite.
 local sqliteReplaces = {
 	["AUTO_INCREMENT"] = "AUTOINCREMENT",
 	["LAST_INSERT_ID()"] = "last_insert_rowid()",
@@ -59,6 +67,10 @@ local sqliteReplaces = {
 
 local emptyFunction = function() end
 
+--- Executes a raw SQL query.
+--- @param query string The query to execute.
+--- @param onSuccess function The function to call on success.
+--- @param onError function The function to call on error.
 function SQL:RawQuery(query, onSuccess, onError)
 	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
@@ -71,7 +83,8 @@ function SQL:RawQuery(query, onSuccess, onError)
 	for _, line in ipairs(x) do
 		logger:Trace1(line)
 	end
-	query = sql.Query(query)
+
+	local query = sql.Query(query)
 
 	if query == false then
 		logger:Fatal("SQL query failed!")
@@ -82,6 +95,11 @@ function SQL:RawQuery(query, onSuccess, onError)
 	end
 end
 
+--- Executes a prepared SQL query.
+--- @param query string The query to execute.
+--- @param values table The values to replace the ? with.
+--- @param onSuccess function The function to call on success.
+--- @param onError function The function to call on error.
 function SQL:PreparedQuery(query, values, onSuccess, onError)
 	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
@@ -95,19 +113,23 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 		logger:Debug(line)
 	end
 
-	query = SQL:prepareStatement(query, values)
+	local preparedQuery = SQL:prepareStatement(query, values)
+	if not preparedQuery then return end
 
-	query = sql.Query(query)
+	local queryResponse = sql.Query(preparedQuery)
 
-	if query == false then
+	if queryResponse == false then
 		logger:Fatal("SQL query failed!")
 		logger:Fatal(sql.LastError())
 		onError(sql.LastError())
 	else
-		onSuccess(query)
+		onSuccess(queryResponse)
 	end
 end
 
+--- Escapes a string for use in a SQL query.
+--- @param str string The string to escape.
+--- @return string
 function SQL:Escape(str)
 	return sql.SQLStr(str)
 end
