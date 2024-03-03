@@ -5,10 +5,10 @@ local l = PulsarLib.Language
 
 --- Receives a net message.
 --- @param name string The name of the net message.
---- @param func function The function to call when the net message is received.
+--- @param func fun(len: number, ply: Player) The function to call when the net message is received.
 --- @param allowedGroups? table The groups allowed to use this net message.
 function PulsarLib.Net.Receive(name, func, allowedGroups)
-    net.Receive("PulsarLib." .. name, function(len, ply, ...)
+    net.Receive("PulsarLib." .. name, function(len, ply)
         if not IsValid(ply) then return end
 
         local err = false
@@ -28,7 +28,7 @@ function PulsarLib.Net.Receive(name, func, allowedGroups)
         end
 
         ply.PulsarRateLimit = CurTime() + 2
-        func(len, ply, ...)
+        func(len, ply)
     end)
 end
 

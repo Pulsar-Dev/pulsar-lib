@@ -45,7 +45,11 @@ function PulsarLib.SQL.Migrations:LoadStored(callback)
 
 		local dt = include(self.filePath .. "/sv_" .. id .. ".lua")
 		if isstring(dt) then
-			self.Stored[id] = self:Migrator(id, tonumber(sort), function(slf, done) return PulsarLib.SQL:RawQuery(dt, done) end)
+			self.Stored[id] = self:Migrator(id, tonumber(sort), function(slf, done)
+				return PulsarLib.SQL:RawQuery(dt, done, function(err)
+					PulsarLib.Logging:Fatal("Failed to run migration " .. id .. ": " .. err)
+				end)
+			end)
 		elseif isfunction(dt) then
 			self.Stored[id] = self:Migrator(id, tonumber(sort), dt)
 		elseif istable(dt) then
@@ -91,6 +95,9 @@ function PulsarLib.SQL.Migrations:Next()
 			"INSERT INTO `pulsarlib_migrations` (`migration`, `addon`) VALUES (" .. PulsarLib.SQL:Escape(migration.name) .. ", " .. PulsarLib.SQL:Escape(self.parent.name) .. ");",
 			function()
 				return self:Next()
+			end,
+			function()
+				PulsarLib.Logging:Fatal("Failed to run migration " .. migration.name .. ". Aborting all next migrations.")
 			end
 		)
 	end)
