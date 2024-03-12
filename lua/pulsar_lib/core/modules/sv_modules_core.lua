@@ -151,7 +151,7 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 
 					local function loadMainModule()
 						local modulePath = "pulsarlib/modules/" .. module .. "/versions/" .. version .. "/"
-						local gmaPath = "data/" .. modulePath .. module .. ".gma.txt"
+						local gmaPath = "data/" .. modulePath .. module .. ".gma"
 
 						PulsarLib.Modules.DownloadModule(module, version, function(downloadSuccess)
 							if not downloadSuccess then

@@ -258,7 +258,7 @@ function PulsarLib.Modules.DownloadModule(name, version, callback)
         end
 
         local gmaName = string.Split(gmaDownloadURL, "/")[#string.Split(gmaDownloadURL, "/")]
-        local gmaPath = "pulsarlib/modules/" .. name .. "/versions/" .. version .. "/" .. gmaName .. ".txt"
+        local gmaPath = "pulsarlib/modules/" .. name .. "/versions/" .. version .. "/" .. gmaName
 
         if file.Exists(gmaPath, "DATA") then
             PulsarLib.Logging:Debug("Module '", logger:Highlight(name), "' version '", logger:Highlight(version), "' already exists")
