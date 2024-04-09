@@ -52,16 +52,11 @@ end
 --- @param name string|table The name of the migrator.
 --- @param sort number The sort order of the migrator.
 --- @param up function The function to run when migrating up.
---- @param down function The function to run when migrating down.
 --- @return MIGRATOR
-function MIGRATOR:New(name, sort, up, down)
+function MIGRATOR:New(name, sort, up)
 	if istable(name) then
 		if name.up then
 			up = name.up
-		end
-
-		if name.down then
-			down = name.down
 		end
 
 		if name.name then
@@ -78,9 +73,6 @@ function MIGRATOR:New(name, sort, up, down)
 	end
 	if isfunction(up) then
 		dt.Up = up
-	end
-	if isfunction(down) then
-		dt.Down = down
 	end
 
 	return setmetatable(dt, MIGRATOR)

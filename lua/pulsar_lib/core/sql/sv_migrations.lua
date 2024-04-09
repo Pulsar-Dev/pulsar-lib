@@ -10,11 +10,11 @@ PulsarLib.SQL.Migrations._migrator = include("sv_migrator.lua")
 
 --- Creates a new Migrator
 --- @param name string|table The name of the migrator.
---- @param up function|number? The function to run when migrating up.
---- @param down function The function to run when migrating down.
+--- @param sort number The sort order of the migrator.
+--- @param up function The function to run when migrating up.
 --- @return MIGRATOR
-function PulsarLib.SQL.Migrations:Migrator(name, up, down)
-	return self._migrator:New(name, up, down)
+function PulsarLib.SQL.Migrations:Migrator(name, sort, up)
+	return self._migrator:New(name, sort, up)
 end
 
 --- Loads the ran migrations from the database.
@@ -43,17 +43,35 @@ function PulsarLib.SQL.Migrations:LoadStored(callback)
 			return
 		end
 
-		local dt = include(self.filePath .. "/sv_" .. id .. ".lua")
-		if isstring(dt) then
-			self.Stored[id] = self:Migrator(id, tonumber(sort), function(slf, done)
-				return PulsarLib.SQL:RawQuery(dt, done, function(err)
+		local migrationData = include(self.filePath .. "/sv_" .. id .. ".lua")
+		if isstring(migrationData) then
+			self.Stored[id] = self:Migrator(id, tonumber(sort) or 0, function(slf, done)
+				return PulsarLib.SQL:RawQuery(migrationData, function()
+					done()
+				end, function(err)
 					PulsarLib.Logging:Fatal("Failed to run migration " .. id .. ": " .. err)
 				end)
 			end)
-		elseif isfunction(dt) then
-			self.Stored[id] = self:Migrator(id, tonumber(sort), dt)
-		elseif istable(dt) then
-			self.Stored[id] = self:Migrator(id, sort, dt.up)
+		elseif isfunction(migrationData) then
+			self.Stored[id] = self:Migrator(id, tonumber(sort) or 0, function(slf, done)
+				local success = migrationData()
+				if success then
+					done()
+					return
+				end
+
+				PulsarLib.Logging:Fatal("Failed to run migration " .. id .. ". Unable to fetch error message.")
+			end)
+		elseif istable(migrationData) and migrationData.up then
+			self.Stored[id] = self:Migrator(id, sort, function(slf, done)
+				local success = migrationData.up()
+				if success then
+					done()
+					return
+				end
+
+				PulsarLib.Logging:Fatal("Failed to run migration " .. id .. ". Unable to fetch error message.")
+			end)
 		else
 			self.Logging:Warning("Invalid Migration Format: " .. migration)
 		end
