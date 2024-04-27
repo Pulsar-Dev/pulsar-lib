@@ -20,6 +20,8 @@ if VERSION < 240424 then
     for i = 1, 10 do
         PulsarLib.Logging:Fatal("PulsarLib is NOT loading due to your servers version being too old. Please update your server.")
     end 
+
+    return
 end
 
 PulsarLib:IncludeDir("core/modules")
