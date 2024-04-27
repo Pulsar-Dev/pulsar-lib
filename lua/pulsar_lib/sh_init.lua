@@ -11,6 +11,17 @@ PulsarLib.AdminUserGroups = {
 PulsarLib:Include("core/sh_functional")
 PulsarLib:Include("core/sh_logging")
 PulsarLib:Include("core/sh_notify")
+
+--[[
+    Dont load PulsarLib (or its addons) below version 2024.04.24. 
+    Versions below this will not be able to write .gma files which PulsarLib and its addons REQUIRE to load modules.
+--]]
+if VERSION < 240424 then
+    for i = 1, 10 do
+        PulsarLib.Logging:Fatal("PulsarLib is NOT loading due to your servers version being too old. Please update your server.")
+    end 
+end
+
 PulsarLib:IncludeDir("core/modules")
 PulsarLib:Include("core/sql/sv_sql")
 PulsarLib:Include("core/sql/sv_migrations")
