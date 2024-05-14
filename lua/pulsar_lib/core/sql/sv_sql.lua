@@ -183,6 +183,7 @@ function SQL:RawQuery(query, onSuccess, onError)
 		for _, line in ipairs(x) do
 			logger:Trace1(line)
 		end
+		
 		local queryReturn = sql.Query(query)
 
 		if queryReturn == false then

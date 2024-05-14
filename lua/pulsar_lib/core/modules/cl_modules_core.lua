@@ -1,3 +1,4 @@
+---@diagnostic disable: duplicate-set-field
 PulsarLib.Modules = PulsarLib.Modules or {}
 PulsarLib.Modules.Loaded = PulsarLib.Modules.Loaded or {}
 
@@ -64,7 +65,8 @@ function PulsarLib.Modules.LoadModule(module, version, callback)
 			return
 		end
 
-		logger:Debug("Waiting for module '", logger:Highlight(module), "' to load using hook '", logger:Highlight(loadHook), "'")
+		logger:Debug("Waiting for module '", logger:Highlight(module), "' to load using hook '",
+			logger:Highlight(loadHook), "'")
 
 		hook.Add(loadHook, "PulsarLib.Modules.LoadModule." .. module, function()
 			logger:Debug("Module '", logger:Highlight(module), "' has loaded")
