@@ -31,6 +31,7 @@ PulsarLib:Include("core/sh_addons")
 PulsarLib:IncludeDir("lang")
 PulsarLib:IncludeDirRecursive("helpers")
 PulsarLib:IncludeDirRecursive("kv")
+PulsarLib:IncludeDirRecursive("updatr")
 
 PulsarLib.Logging:Info("Successfully Loaded!")
 hook.Run("PulsarLib.Loaded")
