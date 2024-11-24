@@ -1,3 +1,4 @@
+---@diagnostic disable: duplicate-set-field
 PulsarLib = PulsarLib or {}
 PulsarLib.KV = PulsarLib.KV or {}
 PulsarLib.KV.Data = PulsarLib.KV.Data or {}
