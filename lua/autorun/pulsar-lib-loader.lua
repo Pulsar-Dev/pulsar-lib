@@ -1,4 +1,5 @@
 PulsarLib = PulsarLib or {}
+PulsarLib.Loaded = false
 
 if file.Exists("pulsarlib/dev", "DATA") then
 	PulsarLib.DevelopmentMode = true

@@ -14,4 +14,10 @@
         "||"
     ],
     "Lua.runtime.version": "Lua 5.1",
+    "cSpell.words": [
+        "pulsarkv",
+        "ratelimit",
+        "superadmin",
+        "usergroup"
+    ],
 }

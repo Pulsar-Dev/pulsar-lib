@@ -1,3 +1,4 @@
+---@diagnostic disable: duplicate-set-field
 PulsarLib = PulsarLib or {}
 PulsarLib.Net = PulsarLib.Net or {}
 
@@ -27,6 +28,7 @@ function PulsarLib.Net.Receive(name, func, allowedGroups)
             return
         end
 
+        ---@diagnostic disable-next-line: inject-field
         ply.PulsarRateLimit = CurTime() + 2
         func(len, ply)
     end)
@@ -143,6 +145,23 @@ function NetHandler:Broadcast()
     end
 
     net.Broadcast()
+end
+
+--- Sends the net message to all players except the one(s) specified.
+--- @param ply Player|table The player(s) to omit from the broadcast. This can be a player or a table of players.
+function NetHandler:SendOmit(ply)
+    net.Start(self.name)
+
+    for _, v in ipairs(self.data) do
+        if v.extras then
+            net["Write" .. v.type](v.data, v.extras)
+            continue
+        end
+
+        net["Write" .. v.type](v.data)
+    end
+
+    net.SendOmit(ply)
 end
 
 PulsarLib.Net.Start = NetHandler.Start
