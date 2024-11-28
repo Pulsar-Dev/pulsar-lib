@@ -35,7 +35,7 @@ PulsarLib.KV.TypeConverts = {
 --- @param type PulsarKVType The type to convert to
 --- @return any The converted value
 function PulsarLib.KV.ConvertType(value, type)
-    return PulsarLib.KV.TypeConverts[type](value)
+    return PulsarLib.KV.TypeConverts[tonumber(type)](value)
 end
 
 -- if not CLIENT then return end

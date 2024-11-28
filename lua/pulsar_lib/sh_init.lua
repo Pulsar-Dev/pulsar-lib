@@ -26,11 +26,16 @@ end
 
 PulsarLib:IncludeDir("core/modules")
 PulsarLib:Include("core/sql/sv_sql")
+PulsarLib:Include("core/sql/cl_sql")
 PulsarLib:Include("core/sql/sv_migrations")
 PulsarLib:Include("core/sh_addons")
 PulsarLib:IncludeDir("lang")
 PulsarLib:IncludeDirRecursive("helpers")
-PulsarLib:IncludeDirRecursive("kv")
+PulsarLib:Include("kv/sh_core")
+PulsarLib:Include("kv/cl_core")
+PulsarLib:Include("kv/cl_net")
+PulsarLib:Include("kv/sv_net")
+PulsarLib:Include("kv/sv_net")
 PulsarLib:IncludeDirRecursive("updatr")
 
 PulsarLib.Logging:Info("Successfully Loaded!")

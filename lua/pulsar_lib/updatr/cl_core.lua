@@ -54,7 +54,7 @@ PulsarLib.Net.Receive("Updatr.TableData", function()
 
     logger:Debug("Received table data for " .. tableName)
 
-    PulsarLib.Hook.Run("Updatr.TableDataReceived", tableName)
+    hook.Run("Updatr.TableDataReceived", tableName)
     PulsarLib.Updatr.ReceivedData[tableName] = t
 end)
 
@@ -81,5 +81,5 @@ PulsarLib.Net.Receive("Updatr.TableUpdates", function()
         PrintTable(tableToUpdate)
     end
 
-    PulsarLib.Hook.Run("Updatr.TableUpdatesReceived", tableName)
+    hook.Run("Updatr.TableUpdatesReceived", tableName)
 end)
