@@ -34,7 +34,7 @@ PulsarLib:IncludeDirRecursive("helpers")
 PulsarLib:Include("kv/sh_core")
 PulsarLib:Include("kv/cl_core")
 PulsarLib:Include("kv/cl_net")
-PulsarLib:Include("kv/sv_net")
+PulsarLib:Include("kv/sv_core")
 PulsarLib:Include("kv/sv_net")
 PulsarLib:IncludeDirRecursive("updatr")
 
