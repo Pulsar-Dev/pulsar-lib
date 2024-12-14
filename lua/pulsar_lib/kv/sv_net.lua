@@ -38,7 +38,7 @@ PulsarLib.Net.Receive("KV.Ready", function(_, ply)
 
         PulsarLib.Net.Start("KV.FetchOnJoin")
             :WriteUInt(len, 32)
-            :PulsarKVWriteData(data, len)
+            :WriteData(data, len)
             :WriteUInt(PulsarLib.KV.State.SHARED, 3)
         :Send(ply)
     end,
