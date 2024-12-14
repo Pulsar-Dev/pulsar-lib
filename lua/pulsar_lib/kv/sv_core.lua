@@ -57,8 +57,8 @@ function PulsarLib.KV.Insert(key, value, state, valueType, onSuccess, onError, p
 
     local table = stateTable[state]
 
-    PulsarLib.SQL:PreparedQuery("REPLACE INTO ? (`key`, `value`, `type`) VALUES (?, ?, ?)",
-    {table, key, value, valueType},
+    PulsarLib.SQL:PreparedQuery("REPLACE INTO " .. table .. " (`key`, `value`, `type`) VALUES (?, ?, ?)",
+    {key, value, valueType},
     function()
         if onSuccess then
             onSuccess()
@@ -85,8 +85,8 @@ end
 function PulsarLib.KV.Fetch(key, state, onSuccess, onError, convert)
     local table = stateTable[state]
 
-    PulsarLib.SQL:PreparedQuery("SELECT `value`, `type` FROM ? WHERE `key` = ?",
-    {table, key},
+    PulsarLib.SQL:PreparedQuery("SELECT `value`, `type` FROM " .. table .. " WHERE `key` = ?",
+    {key},
     function(data)
         if data and data[1] then
             local value = data[1].value
@@ -113,8 +113,8 @@ end
 function PulsarLib.KV.Delete(key, state, onSuccess, onError, player)
     local table = stateTable[state]
 
-    PulsarLib.SQL:PreparedQuery("DELETE FROM ? WHERE `key` = ?",
-    {table, key},
+    PulsarLib.SQL:PreparedQuery("DELETE FROM " .. table .. " WHERE `key` = ?",
+    {key},
     function()
         if onSuccess then
             onSuccess()
@@ -138,8 +138,7 @@ end
 function PulsarLib.KV.FetchAll(state, onSuccess, onError, convert)
     local table = stateTable[state]
 
-    PulsarLib.SQL:PreparedQuery("SELECT `key`, `value`, `type` FROM ?",
-    {table},
+    PulsarLib.SQL:RawQuery("SELECT `key`, `value`, `type` FROM " .. table,
     function(data)
         if data then
             local convertedData = data
