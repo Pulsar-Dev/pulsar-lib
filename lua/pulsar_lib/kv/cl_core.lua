@@ -208,8 +208,7 @@ end
 --- @param onError? function The function to call when the query fails
 function PulsarLib.KV.FetchAll(state, onSuccess, onError)
     if state == PulsarLib.KV.State.LOCAL then
-        PulsarLib.SQL:PreparedQuery("SELECT `key`, `value`, `type` FROM pulsarkv_local",
-        {},
+        PulsarLib.SQL:RawQuery("SELECT `key`, `value`, `type` FROM pulsarkv_local",
         function(data)
             for k, v in pairs(data or {}) do
                 local convertedValue = PulsarLib.KV.ConvertType(v.value, v.type)
