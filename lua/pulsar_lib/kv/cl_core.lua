@@ -21,7 +21,7 @@ hook.Add("InitPostEntity", "PulsarLib.KV.Ready", function()
 end)
 
 hook.Add("PulsarLib.SQL.Connected", "PulsarLib.KV.CreateTable", function()
-    PulsarLib.SQL:RawQuery([[([[
+    PulsarLib.SQL:RawQuery([[
         CREATE TABLE IF NOT EXISTS pulsarkv_local (
             `key` VARCHAR(100) PRIMARY KEY,
             `value` TEXT NOT NULL,
