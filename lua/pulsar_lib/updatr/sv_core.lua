@@ -35,6 +35,10 @@ function PulsarLib.Updatr.GetTableGlobalName(targetTable)
 		for name, tbl in pairs(currentTable) do
 			if type(name) == "table" then continue end
 			if type(tbl) == "table" and not seenTables[tbl] then
+				if type(name) == "Player" or type(name) == "Entity" then
+					name = name:GetName()
+				end
+
 				table_insert(stack, { tbl, currentTableName .. "." .. name })
 			end
 		end
