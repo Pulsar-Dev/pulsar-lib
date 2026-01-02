@@ -103,6 +103,21 @@ hook.Add("Think", "PulsarLib.ConnectToSQL", function()
 	SQL:Connect()
 end)
 
+--- Escapes a string for use in a SQL query.
+--- @param str string The string to escape.
+--- @return string
+function SQL:Escape(str)
+	if self.Details.UsingMySQL then
+		if self.Connection then
+			return "'" .. self.Connection:escape(str) .. "'"
+		else
+			return "'" .. str .. "'" -- Fallback if connection isn't ready, though this shouldn't happen in query
+		end
+	else
+		return sql.SQLStr(str)
+	end
+end
+
 --- Prepare a statement for execution.
 --- @param query string The query to prepare.
 --- @param values table The values to replace the ? with.
@@ -205,20 +220,19 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 	onSuccess = onSuccess or emptyFunction
 	onError = onError or emptyFunction
 
-
 	if self.Details.UsingMySQL then
 		local queryObj = self.Connection:prepare(query)
 
 		queryObj.onSuccess = function(_, data)
 			logger:Debug("Prepared MySQL query succeeded!")
-			logger:Debug(SQL:prepareStatement(query, values))
+			logger:Debug(self:prepareStatement(query, values))
 			onSuccess(data)
 		end
 
 		queryObj.onError = function(_, err)
 			logger:Fatal("Prepared MySQL query failed!")
 			logger:Fatal(err)
-			logger:Fatal(SQL:prepareStatement(query, values))
+			logger:Fatal(self:prepareStatement(query, values))
 			onError(err)
 		end
 
@@ -239,13 +253,13 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 			query = string.Replace(query, k, v)
 		end
 
-		local x = string.Split(query, "\n")
+		local preparedQuery = self:prepareStatement(query, values)
+		if not preparedQuery then return end
+
+		local x = string.Split(preparedQuery, "\n")
 		for _, line in ipairs(x) do
 			logger:Debug(line)
 		end
-
-		local preparedQuery = SQL:prepareStatement(query, values)
-		if not preparedQuery then return end
 
 		local queryReturn = sql.Query(preparedQuery)
 
@@ -256,16 +270,5 @@ function SQL:PreparedQuery(query, values, onSuccess, onError)
 		else
 			onSuccess(queryReturn)
 		end
-	end
-end
-
---- Escapes a string for use in a SQL query.
---- @param str string The string to escape.
---- @return string
-function SQL:Escape(str)
-	if self.Details.UsingMySQL then
-		return "'" .. self.Connection:escape(str) .. "'"
-	else
-		return sql.SQLStr(str)
 	end
 end
